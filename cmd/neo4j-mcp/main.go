@@ -5,10 +5,10 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/neo4j/mcp/internal/cli"
-	"github.com/neo4j/mcp/internal/config"
-	"github.com/neo4j/mcp/internal/logger"
-	"github.com/neo4j/mcp/internal/server"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/cli"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/config"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/logger"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/server"
 )
 
 // go build -C cmd/neo4j-mcp -o ../../bin/ -ldflags "-X 'main.Version=9999'"

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/config"
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/neo4j/mcp/internal/config"
 )
 
 // Neo4jMCPServer represents the MCP server instance

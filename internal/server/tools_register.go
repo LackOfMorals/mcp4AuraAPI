@@ -1,9 +1,9 @@
 package server
 
 import (
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools"
+	cypher "github.com/LackOfMorals/mcp4AuraAPI/internal/tools/outcomes"
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/neo4j/mcp/internal/tools"
-	"github.com/neo4j/mcp/internal/tools/cypher"
 )
 
 // registerTools registers all enabled MCP tools and adds them to the provided MCP server.

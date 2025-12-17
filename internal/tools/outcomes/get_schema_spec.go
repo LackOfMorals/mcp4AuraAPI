@@ -1,4 +1,4 @@
-package cypher
+package outcomes
 
 import (
 	"github.com/mark3labs/mcp-go/mcp"

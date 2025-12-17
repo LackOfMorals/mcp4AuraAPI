@@ -7,15 +7,17 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/neo4j/mcp/internal/logger"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/logger"
 )
 
 // Config holds the application configuration
 type Config struct {
-	URI       string
-	ReadOnly  bool // If true, disables write tools
-	LogLevel  string
-	LogFormat string
+	URI          string // The URL of the Aura API
+	ClientId     string // Client Id to obtain an token to use with Aura API
+	ClientSecret string // Client Secret to obtain an token to use with Aura API
+	ReadOnly     bool   // If true, disables write tools.  True by default
+	LogLevel     string
+	LogFormat    string
 }
 
 // Validate validates the configuration and returns an error if invalid
@@ -28,7 +30,9 @@ func (c *Config) Validate() error {
 		value string
 		name  string
 	}{
-		{c.URI, "Neo4j URI"},
+		{c.URI, "Aura API URI"}
+		{c.ClientId, "Aura API Client Id"},
+		{c.ClientSecret, "Aura API Client Secret"},
 	}
 
 	for _, v := range validations {
@@ -44,14 +48,19 @@ func (c *Config) Validate() error {
 type CLIOverrides struct {
 	URI      string
 	ReadOnly string
+	LogLevel     string
+	LogFormat    string
 }
 
 // LoadConfig loads configuration from environment variables, applies CLI overrides, and validates.
 // CLI flag values take precedence over environment variables.
 // Returns an error if required configuration is missing or invalid.
 func LoadConfig(cliOverrides *CLIOverrides) (*Config, error) {
-	logLevel := GetEnvWithDefault("NEO4J_LOG_LEVEL", "info")
-	logFormat := GetEnvWithDefault("NEO4J_LOG_FORMAT", "text")
+	logLevel := GetEnvWithDefault("LOG_LEVEL", "info")
+	logFormat := GetEnvWithDefault("LOG_FORMAT", "text")
+	readOnly := GetEnvWithDefault("READ_ONLY", "true")
+	uri := GetEnvWithDefault("URI", "https://api.neo4j.io/v1")
+
 
 	// Validate log level and use default if invalid
 	if !slices.Contains(logger.ValidLogLevels, logLevel) {
@@ -66,20 +75,10 @@ func LoadConfig(cliOverrides *CLIOverrides) (*Config, error) {
 	}
 
 	cfg := &Config{
-		URI:       GetEnv("NEO4J_URI"),
-		ReadOnly:  ParseBool(GetEnv("NEO4J_READ_ONLY"), false),
+		URI:       uri,
+		ReadOnly:  ParseBool(readOnly, true),
 		LogLevel:  logLevel,
 		LogFormat: logFormat,
-	}
-
-	// Apply CLI overrides if provided
-	if cliOverrides != nil {
-		if cliOverrides.URI != "" {
-			cfg.URI = cliOverrides.URI
-		}
-		if cliOverrides.ReadOnly != "" {
-			cfg.ReadOnly = ParseBool(cliOverrides.ReadOnly, false)
-		}
 	}
 
 	// Validate configuration

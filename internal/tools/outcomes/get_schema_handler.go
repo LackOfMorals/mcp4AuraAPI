@@ -1,4 +1,4 @@
-package cypher
+package outcomes
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/LackOfMorals/mcp4AuraAPIinternal/tools"
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/neo4j/mcp/internal/tools"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
