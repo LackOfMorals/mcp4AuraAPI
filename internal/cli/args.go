@@ -19,66 +19,40 @@ Options:
   -h, --help                          Show this help message
   -v, --version                       Show version information
   --neo4j-uri <URI>                   Neo4j connection URI (overrides environment variable NEO4J_URI)
-  --neo4j-username <USERNAME>         Database username (overrides environment variable NEO4J_USERNAME)
-  --neo4j-password <PASSWORD>         Database password (overrides environment variable NEO4J_PASSWORD)
-  --neo4j-database <DATABASE>         Database name (overrides environment variable NEO4J_DATABASE)
-  --neo4j-read-only <BOOLEAN>         Enable read-only mode: true or false (overrides environment variable NEO4J_READ_ONLY)
-  --neo4j-telemetry <BOOLEAN>         Enable telemetry: true or false (overrides environment variable NEO4J_TELEMETRY)
-  --neo4j-schema-sample-size <INT>    Number of nodes to sample for schema inference (overrides environment variable NEO4J_SCHEMA_SAMPLE_SIZE)
+  
 
 Required Environment Variables:
   NEO4J_URI       Neo4j database URI
-  NEO4J_USERNAME  Database username
-  NEO4J_PASSWORD  Database password
-
+  
 Optional Environment Variables:
-  NEO4J_DATABASE  Database name (default: neo4j)
-  NEO4J_TELEMETRY Enable/disable telemetry (default: true)
   NEO4J_READ_ONLY Enable read-only mode (default: false)
-  NEO4J_SCHEMA_SAMPLE_SIZE Number of nodes to sample for schema inference (default: 100)
 
 Examples:
   # Using environment variables
-  NEO4J_URI=bolt://localhost:7687 NEO4J_USERNAME=neo4j NEO4J_PASSWORD=password neo4j-mcp
 
   # Using CLI flags (takes precedence over environment variables)
-  neo4j-mcp --neo4j-uri bolt://localhost:7687 --neo4j-username neo4j --neo4j-password password
+  neo4j-mcp 
 
 For more information, visit: https://github.com/neo4j/mcp
 `
 
 // Args holds configuration values parsed from command-line flags
 type Args struct {
-	URI              string
-	Username         string
-	Password         string
-	Database         string
-	ReadOnly         string
-	Telemetry        string
-	SchemaSampleSize string
+	URI      string
+	ReadOnly string
 }
 
 // ParseConfigFlags parses CLI flags and returns configuration values.
 // It should be called after HandleArgs to ensure help/version flags are processed first.
 func ParseConfigFlags() *Args {
 	neo4jURI := flag.String("neo4j-uri", "", "Neo4j connection URI (overrides NEO4J_URI env var)")
-	neo4jUsername := flag.String("neo4j-username", "", "Neo4j username (overrides NEO4J_USERNAME env var)")
-	neo4jPassword := flag.String("neo4j-password", "", "Neo4j password (overrides NEO4J_PASSWORD env var)")
-	neo4jDatabase := flag.String("neo4j-database", "", "Neo4j database name (overrides NEO4J_DATABASE env var)")
 	neo4jReadOnly := flag.String("neo4j-read-only", "", "Enable read-only mode: true or false (overrides NEO4J_READ_ONLY env var)")
-	neo4jTelemetry := flag.String("neo4j-telemetry", "", "Enable telemetry: true or false (overrides NEO4J_TELEMETRY env var)")
-	neo4jSchemaSampleSize := flag.String("neo4j-schema-sample-size", "", "Number of nodes to sample for schema inference (overrides NEO4J_SCHEMA_SAMPLE_SIZE env var)")
 
 	flag.Parse()
 
 	return &Args{
-		URI:              *neo4jURI,
-		Username:         *neo4jUsername,
-		Password:         *neo4jPassword,
-		Database:         *neo4jDatabase,
-		ReadOnly:         *neo4jReadOnly,
-		Telemetry:        *neo4jTelemetry,
-		SchemaSampleSize: *neo4jSchemaSampleSize,
+		URI:      *neo4jURI,
+		ReadOnly: *neo4jReadOnly,
 	}
 }
 
@@ -105,7 +79,7 @@ func HandleArgs(version string) {
 			flags["version"] = true
 			i++
 		// Allow configuration flags to be parsed by the flag package
-		case "--neo4j-uri", "--neo4j-username", "--neo4j-password", "--neo4j-database", "--neo4j-read-only", "--neo4j-telemetry", "--neo4j-schema-sample-size":
+		case "--neo4j-uri", "--neo4j-read-only":
 			// Check if there's a value following the flag
 			if i+1 >= len(os.Args) {
 				err = fmt.Errorf("%s requires a value", arg)
