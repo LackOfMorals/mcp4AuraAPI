@@ -3,12 +3,10 @@ package outcomes
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log/slog"
 
 	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools"
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
 // ListInstancesHandler returns a handler function for the list-instances tool
@@ -21,210 +19,67 @@ func ListInstancesHandler(deps *tools.ToolDependencies) func(context.Context, mc
 // handleListInstances retrieves a list of instances using Aura Client
 func handleListInstances(ctx context.Context, deps *tools.ToolDependencies) (*mcp.CallToolResult, error) {
 
-	if deps.DBService == nil {
-		errMessage := "database service is not initialized"
+	type instanceDetail struct {
+		Id            string
+		Name          string
+		CloudProvider string
+		Memory        string
+		Type          string
+		URL           string
+		Status        string
+	}
+
+	type instanceList []instanceDetail
+
+	if deps.AClient == nil {
+		errMessage := "Aura API Client is not initialized"
 		slog.Error(errMessage)
 		return mcp.NewToolResultError(errMessage), nil
 	}
 
-	slog.Info("retrieving schema from the database")
+	slog.Info("retrieving instances from aura api")
 
-	// Execute the APOC schema query
-	records, err := deps.DBService.ExecuteReadQuery(ctx, schemaQuery, map[string]any{
-		"sampleSize": schemaSampleSize,
-	})
+	// Get the list of instances
+	instances, err := deps.AClient.Instances.List()
 	if err != nil {
-		slog.Error("failed to execute schema query", "error", err)
-		return mcp.NewToolResultError(err.Error()), nil
+		errMessage := "Failed to list instances"
+		slog.Error(errMessage)
 	}
+
+	// Create an empty list
+	records := instanceList{}
+
+	// Now get the details for each instance
+	// And add them to records list
+	for _, inst := range instances.Data {
+		instanceInfo, err := deps.AClient.Instances.Get(string(inst.Id))
+		if err != nil {
+			errMessage := "Failed to get instance details for " + string(inst.Name)
+			slog.Error(errMessage)
+		}
+
+		records = append(records, instanceDetail{
+			Name:          instanceInfo.Data.Name,
+			Id:            instanceInfo.Data.Id,
+			Status:        instanceInfo.Data.Status,
+			CloudProvider: instanceInfo.Data.CloudProvider,
+			Memory:        instanceInfo.Data.Memory,
+			Type:          instanceInfo.Data.Type,
+			URL:           instanceInfo.Data.ConnectionUrl,
+		})
+
+	}
+
 	if len(records) == 0 {
-		slog.Warn("schema is empty, no data in the database")
-		return mcp.NewToolResultText("The get-schema tool executed successfully; however, since the Neo4j instance contains no data, no schema information was returned."), nil
+		slog.Warn("No instances retrieved.")
+		return mcp.NewToolResultText("The tool executed successfully; however, no instance information was returned."), nil
 	}
-	structuredOutput, err := processCypherSchema(records)
+
+	jsonData, err := json.Marshal(records)
 	if err != nil {
-		slog.Error("failed to process get-schema Cypher Query", "error", err)
-		return mcp.NewToolResultError(err.Error()), nil
-	}
-	jsonData, err := json.Marshal(structuredOutput)
-	if err != nil {
-		slog.Error("failed to serialize structured schema", "error", err)
+		slog.Error("failed to serialize to JSON", "error", err)
 		return mcp.NewToolResultError(err.Error()), nil
 
 	}
 	return mcp.NewToolResultText(string(jsonData)), nil
-}
-
-type SchemaItem struct {
-	Key   string       `json:"key"`
-	Value SchemaDetail `json:"value"`
-}
-
-type SchemaDetail struct {
-	Type          string                  `json:"type"`
-	Properties    map[string]string       `json:"properties,omitempty"`
-	Relationships map[string]Relationship `json:"relationships,omitempty"`
-}
-
-type Relationship struct {
-	Direction  string            `json:"direction"`
-	Labels     []string          `json:"labels"` // List of target node labels
-	Properties map[string]string `json:"properties,omitempty"`
-}
-
-// processCypherSchema is a func that transforms a list of Neo4j.Record in a JSON tagged struct,
-// this allows us to maintain the same APOC query supported by multiple Neo4j versions while returning a tokens aware version of it.
-// Properties are optimized to return directly the type and removing unnecessary information:
-// From:
-//
-//	title: {
-//	     unique: false,
-//	     indexed: false,
-//	     type: "STRING",
-//	     existence: false
-//	   }
-//
-// To:
-// title: String
-// Relationship,
-// From:
-//
-//	 relationships:   {
-//	    ALWAYS: {
-//	      count: 16,
-//	      direction: "out",
-//	      labels: ["Something"],
-//	      properties: {
-//				releaseYear: {
-//	      		unique: false,
-//	      		indexed: false,
-//	      		type: "STRING",
-//	      		existence: false
-//	    		}
-//			 }
-//	    }
-//	  }
-//
-// To:
-// { ALWAYS: { direction: "out", labels: ["ACTED_IN"], properties: { releaseYear: "DATE" } } }
-// null values are stripped.
-func processCypherSchema(records []*neo4j.Record) ([]SchemaItem, error) {
-	simplifiedSchema := make([]SchemaItem, 0, len(records))
-
-	for _, record := range records {
-		// Extract "key" (e.g., "Movie", "ACTED_IN")
-		keyRaw, ok := record.Get("key")
-		if !ok {
-			return nil, fmt.Errorf("missing 'key' column in record")
-		}
-		keyStr, ok := keyRaw.(string)
-		if !ok {
-			return nil, fmt.Errorf("invalid key returned")
-		}
-
-		// Extract "value" (The map containing properties, type, relationships)
-		valRaw, ok := record.Get("value")
-		if !ok {
-			return nil, fmt.Errorf("missing 'value' column in record")
-		}
-
-		// Cast the value to a map
-		data, ok := valRaw.(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid value returned")
-		}
-
-		// Transformation logic.
-
-		//  Extract Type ("node" or "relationship")
-		itemType, ok := data["type"].(string)
-		if !ok {
-			return nil, fmt.Errorf("invalid type returned")
-		}
-
-		// Simplify Properties
-		// Input:  { "name": { "type": "STRING", "indexed": ... } }
-		// Output: { "name": "STRING" }
-		cleanProps, ok := simplifyProperties(data["properties"])
-		if !ok {
-			return nil, fmt.Errorf("invalid properties returned")
-		}
-
-		// Simplify Relationships
-		// Input:  { "CONNECTION": { "relationship": null, "direction": "out", "properties": {...} } }
-		// Output: { "CONNECTION": { "direction": "out", "properties": {"dist": "FLOAT"} } }
-		var cleanRels map[string]Relationship
-
-		rawRels, relsExist := data["relationships"]
-		// relationship can be nil
-		if relsExist && rawRels != nil {
-			if relsMap, ok := rawRels.(map[string]interface{}); ok && len(relsMap) > 0 {
-				cleanRels = make(map[string]Relationship)
-				for relName, rawRelDetails := range relsMap {
-					relDetails, ok := rawRelDetails.(map[string]interface{})
-					if !ok {
-						return nil, fmt.Errorf("invalid relationship returned")
-					}
-					// Extract Direction
-					direction, ok := relDetails["direction"].(string)
-					if !ok {
-						return nil, fmt.Errorf("invalid direction returned")
-					}
-
-					// Extract Target Labels
-					var labels []string
-					rawLabels, ok := relDetails["labels"].([]interface{})
-					if !ok {
-						return nil, fmt.Errorf("invalid relationship labels returned")
-					}
-					for _, l := range rawLabels {
-						if lStr, ok := l.(string); ok {
-							labels = append(labels, lStr)
-						}
-					}
-
-					relProps, ok := simplifyProperties(relDetails["properties"])
-					if !ok {
-						return nil, fmt.Errorf("invalid relationship properties returned")
-					}
-					cleanRels[relName] = Relationship{
-						Direction:  direction,
-						Labels:     labels,
-						Properties: relProps,
-					}
-
-				}
-			}
-		}
-
-		simplifiedSchema = append(simplifiedSchema, SchemaItem{
-			Key: keyStr,
-			Value: SchemaDetail{
-				Type:          itemType,
-				Properties:    cleanProps,
-				Relationships: cleanRels,
-			},
-		})
-	}
-
-	return simplifiedSchema, nil
-}
-
-// simplifyProperties removes all the not required information such as "existence", "indexed", "unique", and keep the type name.
-func simplifyProperties(rawProps interface{}) (map[string]string, bool) {
-	cleanProps := make(map[string]string)
-	if props, ok := rawProps.(map[string]interface{}); ok {
-		for propName, rawPropDetails := range props {
-			if propDetails, ok := rawPropDetails.(map[string]interface{}); ok {
-				if typeName, ok := propDetails["type"].(string); ok {
-					cleanProps[propName] = typeName
-				} else {
-					return nil, false
-				}
-			}
-		}
-	} else {
-		return nil, false
-	}
-	return cleanProps, true
 }

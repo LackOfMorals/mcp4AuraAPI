@@ -40,7 +40,10 @@ func (s *Neo4jMCPServer) getEnabledTools() []server.ServerTool {
 		filters = append(filters, filterWriteTools)
 	}
 
-	deps := &tools.ToolDependencies{}
+	deps := &tools.ToolDependencies{
+		AClient: s.aClient,
+	}
+
 	toolDefs := s.getAllToolsDefs(deps)
 
 	for _, filter := range filters {

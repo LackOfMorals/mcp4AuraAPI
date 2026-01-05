@@ -16,7 +16,7 @@ type Config struct {
 	ClientId     string // Client Id to obtain an token to use with Aura API
 	ClientSecret string // Client Secret to obtain an token to use with Aura API
 	ReadOnly     bool   // Disables tools that would make changes.  True by default
-	LogLevel     string  // Logging level to use.  Default  Info
+	LogLevel     string // Logging level to use.  Default  Info
 	LogFormat    string //  Log format to use. Default Text
 }
 
@@ -30,7 +30,6 @@ func (c *Config) Validate() error {
 		value string
 		name  string
 	}{
-		{c.URI, "Aura API URI"}
 		{c.ClientId, "Aura API Client Id"},
 		{c.ClientSecret, "Aura API Client Secret"},
 	}
@@ -46,21 +45,25 @@ func (c *Config) Validate() error {
 
 // CLIOverrides holds optional configuration values from CLI flags
 type CLIOverrides struct {
-	URI      string
-	ReadOnly string
-	LogLevel     string
-	LogFormat    string
+	URI       string
+	ReadOnly  string
+	LogLevel  string
+	LogFormat string
 }
 
 // LoadConfig loads configuration from environment variables, applies CLI overrides, and validates.
 // CLI flag values take precedence over environment variables.
 // Returns an error if required configuration is missing or invalid.
 func LoadConfig(cliOverrides *CLIOverrides) (*Config, error) {
+	// Required
+	clientId := GetEnv("CLIENT_ID")
+	clientSecret := GetEnv("CLIENT_SECRET")
+
+	// Optional with defaults if not set
 	logLevel := GetEnvWithDefault("LOG_LEVEL", "info")
 	logFormat := GetEnvWithDefault("LOG_FORMAT", "text")
 	readOnly := GetEnvWithDefault("READ_ONLY", "true")
 	uri := GetEnvWithDefault("URI", "https://api.neo4j.io/v1")
-
 
 	// Validate log level and use default if invalid
 	if !slices.Contains(logger.ValidLogLevels, logLevel) {
@@ -75,10 +78,12 @@ func LoadConfig(cliOverrides *CLIOverrides) (*Config, error) {
 	}
 
 	cfg := &Config{
-		URI:       uri,
-		ReadOnly:  ParseBool(readOnly, true),
-		LogLevel:  logLevel,
-		LogFormat: logFormat,
+		URI:          uri,
+		ReadOnly:     ParseBool(readOnly, true),
+		LogLevel:     logLevel,
+		LogFormat:    logFormat,
+		ClientId:     clientId,
+		ClientSecret: clientSecret,
 	}
 
 	// Validate configuration
