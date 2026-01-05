@@ -3,7 +3,9 @@ package server
 import (
 	"fmt"
 	"log/slog"
+	"time"
 
+	"github.com/LackOfMorals/aura-client"
 	"github.com/LackOfMorals/mcp4AuraAPI/internal/config"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -12,6 +14,7 @@ import (
 type Neo4jMCPServer struct {
 	MCPServer *server.MCPServer
 	config    *config.Config
+	aClient   *aura.AuraAPIClient
 	version   string
 }
 
@@ -19,35 +22,39 @@ type Neo4jMCPServer struct {
 // The config parameter is expected to be already validated
 func NewNeo4jMCPServer(version string, cfg *config.Config) *Neo4jMCPServer {
 	mcpServer := server.NewMCPServer(
-		"neo4j-mcp",
+		"mcp-aura-api",
 		version,
 		server.WithToolCapabilities(true),
-		server.WithInstructions("This is the Neo4j official MCP server and can provide tool calling to interact with your Neo4j database,"+
-			"by inferring the schema with tools like get-schema and executing arbitrary Cypher queries with read-cypher."),
+		server.WithInstructions("This MCP server provides tools for interacting with Neo4j Aura API "),
+	)
+
+	// Create the client to Aura API
+	auraClient, _ := aura.NewClient(
+		aura.WithCredentials(cfg.ClientId, cfg.ClientSecret),
+		aura.WithTimeout(120*time.Second),
 	)
 
 	return &Neo4jMCPServer{
 		MCPServer: mcpServer,
 		config:    cfg,
 		version:   version,
+		aClient:   auraClient,
 	}
 }
 
 // Start initializes and starts the MCP server using stdio transport
 func (s *Neo4jMCPServer) Start() error {
-	slog.Info("Starting Neo4j MCP Server...")
+	slog.Info("Starting MCP Aura API Server...")
 	err := s.verifyRequirements()
 	if err != nil {
 		return err
 	}
 
-	s.emitStartupEvent()
-
 	// Register tools
 	if err := s.registerTools(); err != nil {
 		return fmt.Errorf("failed to register tools: %w", err)
 	}
-	slog.Info("Started Neo4j MCP Server. Now listening for input...")
+	slog.Info("Started MCP Aura API Server. Now listening for input...")
 	// Note: ServeStdio handles its own signal management for graceful shutdown
 	return server.ServeStdio(s.MCPServer)
 }
@@ -60,8 +67,7 @@ func (s *Neo4jMCPServer) verifyRequirements() error {
 
 // Stop gracefully stops the server
 func (s *Neo4jMCPServer) Stop() error {
-	slog.Info("Stopping Neo4j MCP Server...")
+	slog.Info("Stopping MCP Aura API Server...")
 	// Currently no cleanup needed - the MCP server handles its own lifecycle
-	// Database service cleanup is handled by the caller (main.go)
 	return nil
 }

@@ -22,10 +22,14 @@ Options:
   
 
 Required Environment Variables:
-  NEO4J_URI       Neo4j database URI
+  CLIENT_ID       Client Id 
+  CLIENT_SECRET   Client Secret
   
 Optional Environment Variables:
-  NEO4J_READ_ONLY Enable read-only mode (default: false)
+  URI             URI to Aura API 
+  READ_ONLY       Enable read-only mode (default: true)
+  LOG_LEVEL       Log level to use (default: Info )
+  LOG_FORMAT      Log format to use (defaut: Text )
 
 Examples:
   # Using environment variables
@@ -38,21 +42,33 @@ For more information, visit: https://github.com/neo4j/mcp
 
 // Args holds configuration values parsed from command-line flags
 type Args struct {
-	URI      string
-	ReadOnly string
+	URI          string
+	ClientId     string
+	ClientSecret string
+	ReadOnly     string
+	LogLevel     string
+	LogFormat    string
 }
 
 // ParseConfigFlags parses CLI flags and returns configuration values.
 // It should be called after HandleArgs to ensure help/version flags are processed first.
 func ParseConfigFlags() *Args {
-	neo4jURI := flag.String("neo4j-uri", "", "Neo4j connection URI (overrides NEO4J_URI env var)")
-	neo4jReadOnly := flag.String("neo4j-read-only", "", "Enable read-only mode: true or false (overrides NEO4J_READ_ONLY env var)")
+	URI := flag.String("uri", "", "Neo4j connection URI (overrides NEO4J_URI env var)")
+	ReadOnly := flag.String("read-only", "", "Enable read-only mode: true or false (overrides READ_ONLY env var)")
+	ClientId := flag.String("client-id", "", "Client Id for Aura API ")
+	ClientSecret := flag.String("client-secret", "", "Client Secret for Aura API ")
+	LogLevel := flag.String("log-level", "", "Log level to use ( overrides LOG_LEVEL )")
+	LogFormat := flag.String("log-format", "", "Log level to use ( overrides LOG_FORMAT )")
 
 	flag.Parse()
 
 	return &Args{
-		URI:      *neo4jURI,
-		ReadOnly: *neo4jReadOnly,
+		URI:          *URI,
+		ReadOnly:     *ReadOnly,
+		ClientId:     *ClientId,
+		ClientSecret: *ClientSecret,
+		LogLevel:     *LogLevel,
+		LogFormat:    *LogFormat,
 	}
 }
 
@@ -79,7 +95,7 @@ func HandleArgs(version string) {
 			flags["version"] = true
 			i++
 		// Allow configuration flags to be parsed by the flag package
-		case "--neo4j-uri", "--neo4j-read-only":
+		case "--uri", "--read-only", "--client-id", "--client-secret", "--log-level", "--log-format":
 			// Check if there's a value following the flag
 			if i+1 >= len(os.Args) {
 				err = fmt.Errorf("%s requires a value", arg)

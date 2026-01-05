@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools"
-	cypher "github.com/LackOfMorals/mcp4AuraAPI/internal/tools/outcomes"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools/outcomes"
 	"github.com/mark3labs/mcp-go/server"
 )
 
@@ -23,8 +23,7 @@ type toolFilter func(tools []ToolDefinition) []ToolDefinition
 type toolCategory int
 
 const (
-	cypherCategory toolCategory = 0
-	gdsCategory    toolCategory = 1
+	instancesCategory toolCategory = 0
 )
 
 type ToolDefinition struct {
@@ -69,10 +68,10 @@ func (s *Neo4jMCPServer) getAllToolsDefs(deps *tools.ToolDependencies) []ToolDef
 
 	return []ToolDefinition{
 		{
-			category: cypherCategory,
+			category: instancesCategory,
 			definition: server.ServerTool{
-				Tool:    cypher.GetSchemaSpec(),
-				Handler: cypher.GetSchemaHandler(deps),
+				Tool:    outcomes.ListInstancesSpec(),
+				Handler: outcomes.ListInstancesHandler(deps),
 			},
 			readonly: true,
 		},

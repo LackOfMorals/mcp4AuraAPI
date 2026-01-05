@@ -11,39 +11,22 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
-const (
-	// schemaQuery is the APOC query used to retrieve comprehensive schema information
-	schemaQuery = `
-        CALL apoc.meta.schema({sample: $sampleSize})
-        YIELD value
-        UNWIND keys(value) as key
-        WITH key, value[key] as value
-        RETURN key, value { .properties, .type, .relationships } as value
-    `
-)
-
-// GetSchemaHandler returns a handler function for the get_schema tool
-func GetSchemaHandler(deps *tools.ToolDependencies, schemaSampleSize int32) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+// ListInstancesHandler returns a handler function for the list-instances tool
+func ListInstancesHandler(deps *tools.ToolDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		return handleGetSchema(ctx, deps, schemaSampleSize)
+		return handleListInstances(ctx, deps)
 	}
 }
 
-// handleGetSchema retrieves Neo4j schema information using APOC
-func handleGetSchema(ctx context.Context, deps *tools.ToolDependencies, schemaSampleSize int32) (*mcp.CallToolResult, error) {
+// handleListInstances retrieves a list of instances using Aura Client
+func handleListInstances(ctx context.Context, deps *tools.ToolDependencies) (*mcp.CallToolResult, error) {
+
 	if deps.DBService == nil {
 		errMessage := "database service is not initialized"
 		slog.Error(errMessage)
 		return mcp.NewToolResultError(errMessage), nil
 	}
-	// Emit analytics event
-	if deps.AnalyticsService == nil {
-		errMessage := "analytics service is not initialized"
-		slog.Error(errMessage)
-		return mcp.NewToolResultError(errMessage), nil
-	}
 
-	deps.AnalyticsService.EmitEvent(deps.AnalyticsService.NewToolsEvent("get-schema"))
 	slog.Info("retrieving schema from the database")
 
 	// Execute the APOC schema query

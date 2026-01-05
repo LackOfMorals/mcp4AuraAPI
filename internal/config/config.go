@@ -12,12 +12,12 @@ import (
 
 // Config holds the application configuration
 type Config struct {
-	URI          string // The URL of the Aura API
+	URI          string // The URL of the Aura API. Default https://api.neo4j.io/v1
 	ClientId     string // Client Id to obtain an token to use with Aura API
 	ClientSecret string // Client Secret to obtain an token to use with Aura API
-	ReadOnly     bool   // If true, disables write tools.  True by default
-	LogLevel     string
-	LogFormat    string
+	ReadOnly     bool   // Disables tools that would make changes.  True by default
+	LogLevel     string  // Logging level to use.  Default  Info
+	LogFormat    string //  Log format to use. Default Text
 }
 
 // Validate validates the configuration and returns an error if invalid
