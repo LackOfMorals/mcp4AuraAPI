@@ -42,6 +42,7 @@ func (s *Neo4jMCPServer) getEnabledTools() []server.ServerTool {
 
 	deps := &tools.ToolDependencies{
 		AClient: s.aClient,
+		Config:  s.config,
 	}
 
 	toolDefs := s.getAllToolsDefs(deps)
@@ -70,6 +71,33 @@ func filterWriteTools(tools []ToolDefinition) []ToolDefinition {
 func (s *Neo4jMCPServer) getAllToolsDefs(deps *tools.ToolDependencies) []ToolDefinition {
 
 	return []ToolDefinition{
+		// Outcome-based tools - the new pattern
+		{
+			category: instancesCategory,
+			definition: server.ServerTool{
+				Tool:    outcomes.ListOutcomesSpec(),
+				Handler: outcomes.ListOutcomesHandler(deps),
+			},
+			readonly: true,
+		},
+		{
+			category: instancesCategory,
+			definition: server.ServerTool{
+				Tool:    outcomes.GetOutcomeDetailsSpec(),
+				Handler: outcomes.GetOutcomeDetailsHandler(deps),
+			},
+			readonly: true,
+		},
+		{
+			category: instancesCategory,
+			definition: server.ServerTool{
+				Tool:    outcomes.ExecuteOutcomeSpec(),
+				Handler: outcomes.ExecuteOutcomeHandler(deps),
+			},
+			readonly: true, // Tool itself is read-only; outcome-level checks prevent write operations
+		},
+
+		// Legacy tool - kept for backwards compatibility, can be removed later
 		{
 			category: instancesCategory,
 			definition: server.ServerTool{
