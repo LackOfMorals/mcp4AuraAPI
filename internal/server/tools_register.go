@@ -1,10 +1,9 @@
 package server
 
 import (
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools/outcomes"
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/neo4j/mcp/internal/tools"
-	"github.com/neo4j/mcp/internal/tools/cypher"
-	"github.com/neo4j/mcp/internal/tools/gds"
 )
 
 // registerTools registers all enabled MCP tools and adds them to the provided MCP server.
@@ -24,8 +23,7 @@ type toolFilter func(tools []ToolDefinition) []ToolDefinition
 type toolCategory int
 
 const (
-	cypherCategory toolCategory = 0
-	gdsCategory    toolCategory = 1
+	instancesCategory toolCategory = 0
 )
 
 type ToolDefinition struct {
@@ -41,14 +39,11 @@ func (s *Neo4jMCPServer) getEnabledTools() []server.ServerTool {
 	if s.config != nil && s.config.ReadOnly {
 		filters = append(filters, filterWriteTools)
 	}
-	// If GDS is not installed, disable GDS tools.
-	if !s.gdsInstalled {
-		filters = append(filters, filterGDSTools)
-	}
+
 	deps := &tools.ToolDependencies{
-		DBService:        s.dbService,
-		AnalyticsService: s.anService,
+		AClient: s.aClient,
 	}
+
 	toolDefs := s.getAllToolsDefs(deps)
 
 	for _, filter := range filters {
@@ -71,53 +66,19 @@ func filterWriteTools(tools []ToolDefinition) []ToolDefinition {
 	return readOnlyTools
 }
 
-func filterGDSTools(tools []ToolDefinition) []ToolDefinition {
-	nonGDSTools := make([]ToolDefinition, 0, len(tools))
-	for _, t := range tools {
-		if t.category != gdsCategory {
-			nonGDSTools = append(nonGDSTools, t)
-		}
-	}
-	return nonGDSTools
-}
-
 // getAllToolsDefs returns all available tools with their specs and handlers
 func (s *Neo4jMCPServer) getAllToolsDefs(deps *tools.ToolDependencies) []ToolDefinition {
 
 	return []ToolDefinition{
 		{
-			category: cypherCategory,
+			category: instancesCategory,
 			definition: server.ServerTool{
-				Tool:    cypher.GetSchemaSpec(),
-				Handler: cypher.GetSchemaHandler(deps, s.config.SchemaSampleSize),
+				Tool:    outcomes.ListInstancesSpec(),
+				Handler: outcomes.ListInstancesHandler(deps),
 			},
 			readonly: true,
 		},
-		{
-			category: cypherCategory,
-			definition: server.ServerTool{
-				Tool:    cypher.ReadCypherSpec(),
-				Handler: cypher.ReadCypherHandler(deps),
-			},
-			readonly: true,
-		},
-		{
-			category: cypherCategory,
-			definition: server.ServerTool{
-				Tool:    cypher.WriteCypherSpec(),
-				Handler: cypher.WriteCypherHandler(deps),
-			},
-			readonly: false,
-		},
-		// GDS Category/Section
-		{
-			category: gdsCategory,
-			definition: server.ServerTool{
-				Tool:    gds.ListGDSProceduresSpec(),
-				Handler: gds.ListGdsProceduresHandler(deps),
-			},
-			readonly: true,
-		},
+
 		// Add other categories below...
 	}
 }
