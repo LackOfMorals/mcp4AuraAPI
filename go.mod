@@ -3,9 +3,8 @@ module github.com/LackOfMorals/mcp4AuraAPI
 go 1.25.3
 
 require (
-	github.com/LackOfMorals/aura-client v1.0.3
-	github.com/mark3labs/mcp-go v0.43.0
-	github.com/neo4j/neo4j-go-driver/v5 v5.28.4
+	github.com/LackOfMorals/aura-client v1.0.4
+	github.com/mark3labs/mcp-go v0.43.2
 )
 
 require (
@@ -17,6 +16,9 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
 	github.com/invopop/jsonschema v0.13.0 // indirect
+	github.com/josharian/intern v1.0.0 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/mailru/easyjson v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
@@ -24,7 +26,7 @@ require (
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
-	golang.org/x/sys v0.26.0 // indirect
+	golang.org/x/sys v0.39.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

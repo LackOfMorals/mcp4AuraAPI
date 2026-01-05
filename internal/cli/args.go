@@ -10,15 +10,14 @@ import (
 // osExit is a variable that can be mocked in tests
 var osExit = os.Exit
 
-const helpText = `neo4j-mcp - Neo4j Model Context Protocol Server
+const helpText = `mcp-aura-api - A Model Context Protocol Server for Neo4j Aura API
 
 Usage:
-  neo4j-mcp [OPTIONS]
+  mcp-aura-api  [OPTIONS]
 
 Options:
   -h, --help                          Show this help message
   -v, --version                       Show version information
-  --neo4j-uri <URI>                   Neo4j connection URI (overrides environment variable NEO4J_URI)
   
 
 Required Environment Variables:
@@ -35,7 +34,7 @@ Examples:
   # Using environment variables
 
   # Using CLI flags (takes precedence over environment variables)
-  neo4j-mcp 
+  mcp-aura-api --client-id <YOUR CLIENT ID> --client-secret <YOUR CLIENT SECRET>
 
 For more information, visit: https://github.com/neo4j/mcp
 `
@@ -53,7 +52,7 @@ type Args struct {
 // ParseConfigFlags parses CLI flags and returns configuration values.
 // It should be called after HandleArgs to ensure help/version flags are processed first.
 func ParseConfigFlags() *Args {
-	URI := flag.String("uri", "", "Neo4j connection URI (overrides NEO4J_URI env var)")
+	URI := flag.String("uri", "", "Neo4j Aura API URI (overrides URI env var)")
 	ReadOnly := flag.String("read-only", "", "Enable read-only mode: true or false (overrides READ_ONLY env var)")
 	ClientId := flag.String("client-id", "", "Client Id for Aura API ")
 	ClientSecret := flag.String("client-secret", "", "Client Secret for Aura API ")
@@ -83,7 +82,7 @@ func HandleArgs(version string) {
 
 	flags := make(map[string]bool)
 	var err error
-	i := 1 // we start from 1 because os.Args[0] is the program name ("neo4j-mcp") - not a flag
+	i := 1 // we start from 1 because os.Args[0] is the program name ("mcp-aura-api") - not a flag
 
 	for i < len(os.Args) {
 		arg := os.Args[i]
