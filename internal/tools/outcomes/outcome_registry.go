@@ -280,6 +280,12 @@ func (r *OutcomeRegistry) registerCreateInstanceOutcome() {
 				Description: "Instance type: 'free-db', 'professional-db', or 'business-critical','enterprise-db', 'enterprise-ds'",
 				Required:    true,
 			},
+			{
+				Name:        "tenantId",
+				Type:        "string",
+				Description: "The id of the project that the instance will be created in.",
+				Required:    true,
+			},
 		},
 		Metadata: map[string]interface{}{
 			"category": "instances",
@@ -348,6 +354,11 @@ func executeCreateInstance(ctx context.Context, parameters map[string]interface{
 		return mcp.NewToolResultError(fmt.Sprintf("Invalid type '%s'. Must be one of: 'free', 'professional', 'enterprise'", instanceType)), nil
 	}
 
+	tenant, ok := parameters["tenantId"].(string)
+	if !ok || instanceType == "" {
+		return mcp.NewToolResultError("'tenantId' parameter is required"), nil
+	}
+
 	version := "5" // default
 
 	// Create the instance using the Aura API client
@@ -359,6 +370,7 @@ func executeCreateInstance(ctx context.Context, parameters map[string]interface{
 		Memory:        memory,
 		Type:          instanceType,
 		Version:       version,
+		TenantId:      tenant,
 	}
 
 	// Call the Aura API to create the instance
