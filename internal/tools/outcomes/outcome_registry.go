@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/LackOfMorals/aura-client"
 	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools"
 	"github.com/mark3labs/mcp-go/mcp"
 )
@@ -210,18 +211,18 @@ func executeDeleteInstance(ctx context.Context, parameters map[string]interface{
 	}
 
 	// Delete the instance using the Aura API client
-	err = deps.AClient.Instances.Delete(instanceID)
+	_, err = deps.AClient.Instances.Delete(instanceID)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("Failed to delete instance: %v", err)), nil
 	}
 
 	// Format the response
 	type deleteResult struct {
-		Success       bool   `json:"success"`
-		Message       string `json:"message"`
-		DeletedID     string `json:"deleted_id"`
-		DeletedName   string `json:"deleted_name"`
-		Warning       string `json:"warning"`
+		Success     bool   `json:"success"`
+		Message     string `json:"message"`
+		DeletedID   string `json:"deleted_id"`
+		DeletedName string `json:"deleted_name"`
+		Warning     string `json:"warning"`
 	}
 
 	result := deleteResult{
@@ -270,21 +271,14 @@ func (r *OutcomeRegistry) registerCreateInstanceOutcome() {
 			{
 				Name:        "memory",
 				Type:        "string",
-				Description: "Memory size for the instance (e.g., '2GB', '8GB', '16GB', '32GB', '64GB')",
+				Description: "Memory size for the instance ('2GB', '4GB', '8GB', '16GB', '32GB', '48GB', '64GB', '96GB', '128GB', '192GB', '256GB', '384GB', '512GB', '768GB', '1024GB', '1536GB', '2048GB')",
 				Required:    true,
 			},
 			{
 				Name:        "type",
 				Type:        "string",
-				Description: "Instance type: 'free', 'professional', or 'enterprise'",
+				Description: "Instance type: 'free-db', 'professional-db', or 'business-critical','enterprise-db', 'enterprise-ds'",
 				Required:    true,
-			},
-			{
-				Name:        "version",
-				Type:        "string",
-				Description: "Neo4j version (e.g., '5', '5.24'). If not specified, uses the latest stable version.",
-				Required:    false,
-				Default:     "5",
 			},
 		},
 		Metadata: map[string]interface{}{
@@ -296,6 +290,22 @@ func (r *OutcomeRegistry) registerCreateInstanceOutcome() {
 
 // executeCreateInstance implements the create-instance outcome
 func executeCreateInstance(ctx context.Context, parameters map[string]interface{}, deps *tools.ToolDependencies) (*mcp.CallToolResult, error) {
+	// These are supported parameters for creating an instance
+	/*
+		var supportedMemory = []string{
+			"1GB", "2GB", "4GB", "8GB", "16GB", "24GB", "32GB", "48GB", "64GB", "128GB", "192GB", "256GB", "384GB", "512GB",
+		}
+		var supportedTypes = []string{
+			"enterprise-db", "enterprise-ds", "professional-db", "professional-ds", "free-db", "business-critical",
+		}
+		var supportedCloudProviders = []string{"gcp", "aws", "azure"}
+		var supportedVersions = []string{"5"}
+		var supportedStorage = []string{
+			"2GB", "4GB", "8GB", "16GB", "32GB", "48GB", "64GB", "96GB", "128GB", "192GB", "256GB", "384GB", "512GB",
+			"768GB", "1024GB", "1536GB", "2048GB",
+		}
+	*/
+
 	if deps.AClient == nil {
 		return mcp.NewToolResultError("Aura API Client is not initialized"), nil
 	}
@@ -333,32 +343,16 @@ func executeCreateInstance(ctx context.Context, parameters map[string]interface{
 	}
 
 	// Validate instance type
-	validTypes := map[string]bool{"free": true, "professional": true, "enterprise": true}
+	validTypes := map[string]bool{"enterprise-db": true, "enterprise-ds": true, "professional-db": true, "professional-ds": true, "free-db": true, "business-critical": true}
 	if !validTypes[instanceType] {
 		return mcp.NewToolResultError(fmt.Sprintf("Invalid type '%s'. Must be one of: 'free', 'professional', 'enterprise'", instanceType)), nil
 	}
 
-	// Optional version parameter
 	version := "5" // default
-	if v, exists := parameters["version"]; exists {
-		if vStr, ok := v.(string); ok && vStr != "" {
-			version = vStr
-		}
-	}
 
 	// Create the instance using the Aura API client
-	// Note: The actual API call structure depends on the aura-client library
-	// This is a typical pattern - adjust based on the actual client API
-	type CreateInstanceRequest struct {
-		Name          string `json:"name"`
-		CloudProvider string `json:"cloud_provider"`
-		Region        string `json:"region"`
-		Memory        string `json:"memory"`
-		Type          string `json:"type"`
-		Version       string `json:"version"`
-	}
 
-	req := CreateInstanceRequest{
+	instanceDefinition := aura.CreateInstanceConfigData{
 		Name:          name,
 		CloudProvider: cloudProvider,
 		Region:        region,
@@ -368,7 +362,7 @@ func executeCreateInstance(ctx context.Context, parameters map[string]interface{
 	}
 
 	// Call the Aura API to create the instance
-	instance, err := deps.AClient.Instances.Create(req.Name, req.CloudProvider, req.Region, req.Memory, req.Type, req.Version)
+	instance, err := deps.AClient.Instances.Create(&instanceDefinition)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("Failed to create instance: %v", err)), nil
 	}
@@ -384,6 +378,8 @@ func executeCreateInstance(ctx context.Context, parameters map[string]interface{
 		Memory        string `json:"memory"`
 		Type          string `json:"type"`
 		URL           string `json:"url,omitempty"`
+		Username      string `json:"User"`
+		Password      string `json:"Password"`
 	}
 
 	result := createResult{
@@ -391,11 +387,11 @@ func executeCreateInstance(ctx context.Context, parameters map[string]interface{
 		Message:       "Instance created successfully",
 		Id:            instance.Data.Id,
 		Name:          instance.Data.Name,
-		Status:        instance.Data.Status,
 		CloudProvider: instance.Data.CloudProvider,
-		Memory:        instance.Data.Memory,
 		Type:          instance.Data.Type,
 		URL:           instance.Data.ConnectionUrl,
+		Username:      instance.Data.Username,
+		Password:      instance.Data.Password,
 	}
 
 	jsonData, err := json.MarshalIndent(result, "", "  ")
