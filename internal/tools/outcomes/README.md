@@ -53,19 +53,9 @@ func (r *OutcomeRegistry) registerCreateInstanceOutcome() {
                 Description: "Name for the new instance",
                 Required:    true,
             },
-            {
-                Name:        "cloud_provider",
-                Type:        "string",
-                Description: "Cloud provider (gcp, aws, azure)",
-                Required:    true,
-            },
-            {
-                Name:        "memory",
-                Type:        "string",
-                Description: "Memory size (e.g., '2GB', '8GB')",
-                Required:    true,
-            },
+            // ... more parameters
         },
+        Handler: executeCreateInstance, // Point to the handler function
     }
 }
 ```
@@ -85,24 +75,19 @@ func NewOutcomeRegistry() *OutcomeRegistry {
 }
 ```
 
-### 3. Implement the Execution Logic
+### 3. Implement the Handler Function
+
+The handler must match the `OutcomeHandler` signature:
 
 ```go
+// OutcomeHandler signature:
+// func(ctx context.Context, parameters map[string]interface{}, deps *tools.ToolDependencies) (*mcp.CallToolResult, error)
+
 func executeCreateInstance(ctx context.Context, parameters map[string]interface{}, deps *tools.ToolDependencies) (*mcp.CallToolResult, error) {
     // Validate required parameters
     name, ok := parameters["name"].(string)
     if !ok {
         return mcp.NewToolResultError("name parameter is required"), nil
-    }
-    
-    cloudProvider, ok := parameters["cloud_provider"].(string)
-    if !ok {
-        return mcp.NewToolResultError("cloud_provider parameter is required"), nil
-    }
-    
-    memory, ok := parameters["memory"].(string)
-    if !ok {
-        return mcp.NewToolResultError("memory parameter is required"), nil
     }
     
     // Execute the operation using deps.AClient
@@ -112,26 +97,7 @@ func executeCreateInstance(ctx context.Context, parameters map[string]interface{
 }
 ```
 
-### 4. Add the Case in ExecuteOutcome()
-
-```go
-func (r *OutcomeRegistry) ExecuteOutcome(ctx context.Context, id string, parameters map[string]interface{}, deps *tools.ToolDependencies) (*mcp.CallToolResult, error) {
-    outcome, err := r.GetOutcome(id)
-    if err != nil {
-        return mcp.NewToolResultError(err.Error()), nil
-    }
-
-    switch id {
-    case "list-instances":
-        return executeListInstances(ctx, deps)
-    case "create-instance":
-        return executeCreateInstance(ctx, parameters, deps)
-    // Add more cases here
-    default:
-        return mcp.NewToolResultError(fmt.Sprintf("execution not implemented for outcome: %s", id)), nil
-    }
-}
-```
+**That's it!** No need to modify ExecuteOutcome or add switch cases. The handler is automatically called when the outcome is executed.
 
 ## Benefits of This Pattern
 

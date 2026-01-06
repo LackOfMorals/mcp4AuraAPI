@@ -68,18 +68,12 @@ func (r *OutcomeRegistry) ExecuteOutcome(ctx context.Context, id string, paramet
 		)), nil
 	}
 
-	// Route to the appropriate handler based on outcome ID
-	switch id {
-	case "list-instances":
-		return executeListInstances(ctx, deps)
-	case "create-instance":
-		return executeCreateInstance(ctx, parameters, deps)
-	case "delete-instance":
-		return executeDeleteInstance(ctx, parameters, deps)
-	// Add more cases as new outcomes are developed
-	default:
-		return mcp.NewToolResultError(fmt.Sprintf("execution not implemented for outcome: %s", id)), nil
+	// Execute the handler associated with this outcome
+	if outcome.Handler == nil {
+		return mcp.NewToolResultError(fmt.Sprintf("no handler registered for outcome: %s", id)), nil
 	}
+
+	return outcome.Handler(ctx, parameters, deps)
 }
 
 // registerListInstancesOutcome registers the list-instances outcome
@@ -94,11 +88,12 @@ func (r *OutcomeRegistry) registerListInstancesOutcome() {
 		Metadata: map[string]interface{}{
 			"category": "instances",
 		},
+		Handler: executeListInstances,
 	}
 }
 
 // executeListInstances implements the list-instances outcome
-func executeListInstances(ctx context.Context, deps *tools.ToolDependencies) (*mcp.CallToolResult, error) {
+func executeListInstances(ctx context.Context, parameters map[string]interface{}, deps *tools.ToolDependencies) (*mcp.CallToolResult, error) {
 	type instanceDetail struct {
 		Id            string `json:"id"`
 		Name          string `json:"name"`
@@ -182,6 +177,7 @@ func (r *OutcomeRegistry) registerDeleteInstanceOutcome() {
 			"destructive": true,
 			"warning":     "This operation permanently deletes the instance and all its data. This cannot be undone.",
 		},
+		Handler: executeDeleteInstance,
 	}
 }
 
@@ -294,6 +290,7 @@ func (r *OutcomeRegistry) registerCreateInstanceOutcome() {
 		Metadata: map[string]interface{}{
 			"category": "instances",
 		},
+		Handler: executeCreateInstance,
 	}
 }
 

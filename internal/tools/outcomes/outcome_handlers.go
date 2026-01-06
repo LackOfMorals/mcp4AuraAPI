@@ -33,8 +33,14 @@ func ListOutcomesHandler(deps *tools.ToolDependencies) func(context.Context, mcp
 // GetOutcomeDetailsHandler returns a handler function for getting outcome details
 func GetOutcomeDetailsHandler(deps *tools.ToolDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		// Type assert Arguments to map[string]interface{}
+		arguments, ok := request.Params.Arguments.(map[string]interface{})
+		if !ok {
+			return mcp.NewToolResultError("invalid arguments format"), nil
+		}
+
 		// Extract outcome_id from request
-		outcomeID, ok := request.Params.Arguments["outcome_id"].(string)
+		outcomeID, ok := arguments["outcome_id"].(string)
 		if !ok || outcomeID == "" {
 			return mcp.NewToolResultError("outcome_id parameter is required and must be a string"), nil
 		}
@@ -57,15 +63,21 @@ func GetOutcomeDetailsHandler(deps *tools.ToolDependencies) func(context.Context
 // ExecuteOutcomeHandler returns a handler function for executing an outcome
 func ExecuteOutcomeHandler(deps *tools.ToolDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		// Type assert Arguments to map[string]interface{}
+		arguments, ok := request.Params.Arguments.(map[string]interface{})
+		if !ok {
+			return mcp.NewToolResultError("invalid arguments format"), nil
+		}
+
 		// Extract outcome_id from request
-		outcomeID, ok := request.Params.Arguments["outcome_id"].(string)
+		outcomeID, ok := arguments["outcome_id"].(string)
 		if !ok || outcomeID == "" {
 			return mcp.NewToolResultError("outcome_id parameter is required and must be a string"), nil
 		}
 
 		// Extract parameters (optional, defaults to empty map)
 		var parameters map[string]interface{}
-		if paramsVal, exists := request.Params.Arguments["parameters"]; exists {
+		if paramsVal, exists := arguments["parameters"]; exists {
 			if params, ok := paramsVal.(map[string]interface{}); ok {
 				parameters = params
 			} else {

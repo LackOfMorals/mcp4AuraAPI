@@ -1,5 +1,12 @@
 package outcomes
 
+import (
+	"context"
+
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools"
+	"github.com/mark3labs/mcp-go/mcp"
+)
+
 // OutcomeType represents the type/category of an outcome
 type OutcomeType string
 
@@ -11,6 +18,9 @@ const (
 	OutcomeTypeDelete OutcomeType = "delete"
 )
 
+// OutcomeHandler is a function that executes an outcome
+type OutcomeHandler func(ctx context.Context, parameters map[string]interface{}, deps *tools.ToolDependencies) (*mcp.CallToolResult, error)
+
 // Outcome represents a high-level operation that can be performed
 type Outcome struct {
 	ID          string                 `json:"id"`
@@ -20,6 +30,7 @@ type Outcome struct {
 	ReadOnly    bool                   `json:"readonly"`
 	Parameters  []OutcomeParameter     `json:"parameters,omitempty"`
 	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	Handler     OutcomeHandler         `json:"-"` // Handler function (not serialized to JSON)
 }
 
 // OutcomeParameter represents a parameter required for an outcome
