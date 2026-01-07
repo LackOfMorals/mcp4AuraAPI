@@ -97,16 +97,6 @@ func (s *Neo4jMCPServer) getAllToolsDefs(deps *tools.ToolDependencies) []ToolDef
 			readonly: true, // Tool itself is read-only; outcome-level checks prevent write operations
 		},
 
-		// Legacy tool - kept for backwards compatibility, can be removed later
-		{
-			category: instancesCategory,
-			definition: server.ServerTool{
-				Tool:    outcomes.ListInstancesSpec(),
-				Handler: outcomes.ListInstancesHandler(deps),
-			},
-			readonly: true,
-		},
-
 		// Add other categories below...
 	}
 }
