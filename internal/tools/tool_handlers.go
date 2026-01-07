@@ -1,3 +1,14 @@
+// This package implements a three-tool pattern for MCP operations:
+//
+//  1. **list-outcome** - Lists all available operations
+//  2. **get-outcome-details** - Gets detailed information about a specific operation
+//  3. **execute-outcome** - Executes the operation
+//
+//  An outcome provides the desired end state using any supplied parameter. Outcome is used to
+//  differentiate between MCP Tool ( as there are only three MCP tools as described above ).
+//
+// tools_handlers.go holds the MCP Tool handlers for the three-tool pattern
+
 package tools
 
 import (
@@ -5,18 +16,19 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/outcomes"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
 // Global registry instance - initialized once
-var registry *OutcomeRegistry
+var registry *outcomes.OutcomeRegistry
 
 func init() {
-	registry = NewOutcomeRegistry()
+	registry = outcomes.NewOutcomeRegistry()
 }
 
 // ListOutcomesHandler returns a handler function for listing all available Outcomes
-func ListOutcomesHandler(deps *Outcomes.OutcomeDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ListOutcomesHandler(deps *ToolDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		summaries := registry.GetAllSummaries()
 
@@ -30,7 +42,7 @@ func ListOutcomesHandler(deps *Outcomes.OutcomeDependencies) func(context.Contex
 }
 
 // GetOutcomeDetailsHandler returns a handler function for getting Outcome details
-func GetOutcomeDetailsHandler(deps *Outcomes.OutcomeDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetOutcomeDetailsHandler(deps *ToolDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Type assert Arguments to map[string]interface{}
 		arguments, ok := request.Params.Arguments.(map[string]interface{})
@@ -60,7 +72,7 @@ func GetOutcomeDetailsHandler(deps *Outcomes.OutcomeDependencies) func(context.C
 }
 
 // ExecuteOutcomeHandler returns a handler function for executing an Outcome
-func ExecuteOutcomeHandler(deps *Outcomes.OutcomeDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ExecuteOutcomeHandler(deps *ToolDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Type assert Arguments to map[string]interface{}
 		arguments, ok := request.Params.Arguments.(map[string]interface{})

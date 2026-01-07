@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/LackOfMorals/aura-client"
-	"github.com/LackOfMorals/mcp4AuraAPI/internal/Outcomes"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 

@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools"
-	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools/Tools"
+
 	"github.com/mark3labs/mcp-go/server"
 )
 
@@ -75,24 +75,24 @@ func (s *Neo4jMCPServer) getAllToolsDefs(deps *tools.ToolDependencies) []ToolDef
 		{
 			category: instancesCategory,
 			definition: server.ServerTool{
-				Tool:    Tools.ListToolsSpec(),
-				Handler: Tools.ListToolsHandler(deps),
+				Tool:    tools.ListOutcomesSpec(),
+				Handler: tools.ListOutcomesHandler(deps),
 			},
 			readonly: true,
 		},
 		{
 			category: instancesCategory,
 			definition: server.ServerTool{
-				Tool:    Tools.GetToolDetailsSpec(),
-				Handler: Tools.GetToolDetailsHandler(deps),
+				Tool:    tools.GetOutcomeDetailsSpec(),
+				Handler: tools.GetOutcomeDetailsHandler(deps),
 			},
 			readonly: true,
 		},
 		{
 			category: instancesCategory,
 			definition: server.ServerTool{
-				Tool:    Tools.ExecuteToolSpec(),
-				Handler: Tools.ExecuteToolHandler(deps),
+				Tool:    tools.ExecuteOutcomeSpec(),
+				Handler: tools.ExecuteOutcomeHandler(deps),
 			},
 			readonly: true, // Tool itself is read-only; Tool-level checks prevent write operations
 		},

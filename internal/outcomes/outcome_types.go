@@ -3,6 +3,7 @@ package outcomes
 import (
 	"context"
 
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -18,7 +19,7 @@ const (
 )
 
 // OutcomesHandler is a function that executes an Outcomes
-type OutcomesHandler func(ctx context.Context, parameters map[string]interface{}, deps *Outcome.OutcomeDependencies) (*mcp.CallToolResult, error)
+type OutcomesHandler func(ctx context.Context, parameters map[string]interface{}, deps *tools.ToolDependencies) (*mcp.CallToolResult, error)
 
 // Outcome represents a high-level operation that can be performed
 type Outcome struct {

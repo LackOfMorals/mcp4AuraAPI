@@ -6,6 +6,8 @@
 //
 //  An outcome provides the desired end state using any supplied parameter. Outcome is used to
 //  differentiate between MCP Tool ( as there are only three MCP tools as described above ).
+//
+// tools_spec.go holds the MCP Tool spec for the three-tool pattern
 
 package tools
 
