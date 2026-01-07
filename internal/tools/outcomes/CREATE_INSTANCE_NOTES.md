@@ -2,7 +2,7 @@
 
 ## Implementation Status
 
-The `create-instance` outcome has been added with the following configuration:
+The `create-instance` Tool has been added with the following configuration:
 
 ### Required Parameters
 - **name**: Name for the new instance
@@ -81,7 +81,7 @@ Before deploying, test the create functionality:
 
 ```go
 // In a test file
-package outcomes
+package Tools
 
 import (
     "testing"
@@ -115,7 +115,7 @@ instance.Data.ConnectionUrl
 
 This matches the structure used in `list-instances`, so it should be consistent.
 
-## Testing the Outcome
+## Testing the Tool
 
 Once you've verified/adjusted the API call:
 
@@ -126,16 +126,16 @@ go build -o bin/mcp-aura-api ./cmd/mcp-aura-api
 # 2. Test with MCP Inspector
 npx @modelcontextprotocol/inspector ./bin/mcp-aura-api
 
-# 3. List outcomes to see create-instance
-# 4. Get details: get-outcome-details with outcome_id="create-instance"
-# 5. Execute: execute-outcome with outcome_id="create-instance" and parameters={...}
+# 3. List Tools to see create-instance
+# 4. Get details: get-Tool-details with Tool_id="create-instance"
+# 5. Execute: execute-Tool with Tool_id="create-instance" and parameters={...}
 ```
 
 ## Example Execution
 
 ```json
 {
-  "outcome_id": "create-instance",
+  "Tool_id": "create-instance",
   "parameters": {
     "name": "my-test-db",
     "cloud_provider": "gcp",
@@ -177,7 +177,7 @@ Additional validation could be added based on API requirements.
 ## Next Steps
 
 1. **Verify API Call**: Check the actual aura-client library to confirm the Create method signature
-2. **Adjust if Needed**: Update line 272 in `outcome_registry.go` with the correct API call
+2. **Adjust if Needed**: Update line 272 in `Tool_registry.go` with the correct API call
 3. **Test**: Build and test with real credentials
 4. **Add More Validations**: Consider adding region/memory validation if needed
 5. **Documentation**: Update user-facing docs once tested

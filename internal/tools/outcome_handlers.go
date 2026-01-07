@@ -1,11 +1,10 @@
-package outcomes
+package tools
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 
-	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -16,22 +15,22 @@ func init() {
 	registry = NewOutcomeRegistry()
 }
 
-// ListOutcomesHandler returns a handler function for listing all available outcomes
-func ListOutcomesHandler(deps *tools.ToolDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+// ListOutcomesHandler returns a handler function for listing all available Outcomes
+func ListOutcomesHandler(deps *Outcomes.OutcomeDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		summaries := registry.GetAllSummaries()
 
 		jsonData, err := json.MarshalIndent(summaries, "", "  ")
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("Failed to serialize outcomes: %v", err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("Failed to serialize Outcomes: %v", err)), nil
 		}
 
 		return mcp.NewToolResultText(string(jsonData)), nil
 	}
 }
 
-// GetOutcomeDetailsHandler returns a handler function for getting outcome details
-func GetOutcomeDetailsHandler(deps *tools.ToolDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+// GetOutcomeDetailsHandler returns a handler function for getting Outcome details
+func GetOutcomeDetailsHandler(deps *Outcomes.OutcomeDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Type assert Arguments to map[string]interface{}
 		arguments, ok := request.Params.Arguments.(map[string]interface{})
@@ -39,29 +38,29 @@ func GetOutcomeDetailsHandler(deps *tools.ToolDependencies) func(context.Context
 			return mcp.NewToolResultError("invalid arguments format"), nil
 		}
 
-		// Extract outcome_id from request
-		outcomeID, ok := arguments["outcome_id"].(string)
-		if !ok || outcomeID == "" {
-			return mcp.NewToolResultError("outcome_id parameter is required and must be a string"), nil
+		// Extract Outcome_id from request
+		OutcomeID, ok := arguments["Outcome_id"].(string)
+		if !ok || OutcomeID == "" {
+			return mcp.NewToolResultError("Outcome_id parameter is required and must be a string"), nil
 		}
 
-		// Get the outcome details
-		outcome, err := registry.GetOutcome(outcomeID)
+		// Get the Outcome details
+		Outcome, err := registry.GetOutcome(OutcomeID)
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
 
-		jsonData, err := json.MarshalIndent(outcome, "", "  ")
+		jsonData, err := json.MarshalIndent(Outcome, "", "  ")
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("Failed to serialize outcome details: %v", err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("Failed to serialize Outcome details: %v", err)), nil
 		}
 
 		return mcp.NewToolResultText(string(jsonData)), nil
 	}
 }
 
-// ExecuteOutcomeHandler returns a handler function for executing an outcome
-func ExecuteOutcomeHandler(deps *tools.ToolDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+// ExecuteOutcomeHandler returns a handler function for executing an Outcome
+func ExecuteOutcomeHandler(deps *Outcomes.OutcomeDependencies) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Type assert Arguments to map[string]interface{}
 		arguments, ok := request.Params.Arguments.(map[string]interface{})
@@ -69,10 +68,10 @@ func ExecuteOutcomeHandler(deps *tools.ToolDependencies) func(context.Context, m
 			return mcp.NewToolResultError("invalid arguments format"), nil
 		}
 
-		// Extract outcome_id from request
-		outcomeID, ok := arguments["outcome_id"].(string)
-		if !ok || outcomeID == "" {
-			return mcp.NewToolResultError("outcome_id parameter is required and must be a string"), nil
+		// Extract Outcome_id from request
+		OutcomeID, ok := arguments["Outcome_id"].(string)
+		if !ok || OutcomeID == "" {
+			return mcp.NewToolResultError("Outcome_id parameter is required and must be a string"), nil
 		}
 
 		// Extract parameters (optional, defaults to empty map)
@@ -87,7 +86,7 @@ func ExecuteOutcomeHandler(deps *tools.ToolDependencies) func(context.Context, m
 			parameters = make(map[string]interface{})
 		}
 
-		// Execute the outcome
-		return registry.ExecuteOutcome(ctx, outcomeID, parameters, deps)
+		// Execute the Outcome
+		return registry.ExecuteOutcome(ctx, OutcomeID, parameters, deps)
 	}
 }

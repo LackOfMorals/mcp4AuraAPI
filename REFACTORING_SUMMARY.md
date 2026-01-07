@@ -10,7 +10,7 @@ Replaced the switch statement pattern with a cleaner handler function pattern.
 
 ### Before: Switch Statement
 ```go
-func (r *OutcomeRegistry) ExecuteOutcome(...) {
+func (r *ToolRegistry) ExecuteTool(...) {
     switch id {
     case "list-instances":
         return executeListInstances(ctx, deps)
@@ -26,17 +26,17 @@ func (r *OutcomeRegistry) ExecuteOutcome(...) {
 
 ### After: Handler Functions
 ```go
-type OutcomeHandler func(ctx, parameters, deps) (*mcp.CallToolResult, error)
+type ToolHandler func(ctx, parameters, deps) (*mcp.CallToolResult, error)
 
-type Outcome struct {
+type Tool struct {
     // ... other fields
-    Handler OutcomeHandler  // ✅ Each outcome knows its handler
+    Handler ToolHandler  // ✅ Each Tool knows its handler
 }
 
-func (r *OutcomeRegistry) ExecuteOutcome(...) {
-    outcome, err := r.GetOutcome(id)
+func (r *ToolRegistry) ExecuteTool(...) {
+    Tool, err := r.GetTool(id)
     // Check permissions
-    return outcome.Handler(ctx, parameters, deps)  // ✅ Just call it!
+    return Tool.Handler(ctx, parameters, deps)  // ✅ Just call it!
 }
 ```
 
@@ -46,23 +46,23 @@ func (r *OutcomeRegistry) ExecuteOutcome(...) {
 
 | Benefit | Description |
 |---------|-------------|
-| **Zero-Touch Addition** | Add new outcomes without modifying ExecuteOutcome |
-| **Type Safety** | OutcomeHandler enforces consistent signatures |
-| **Loose Coupling** | ExecuteOutcome doesn't know about specific outcomes |
+| **Zero-Touch Addition** | Add new Tools without modifying ExecuteTool |
+| **Type Safety** | ToolHandler enforces consistent signatures |
+| **Loose Coupling** | ExecuteTool doesn't know about specific Tools |
 | **Cleaner Code** | No growing switch statement to maintain |
 | **Better Testing** | Test handlers directly or through registry |
-| **Self-Documenting** | Each outcome declares its own handler |
+| **Self-Documenting** | Each Tool declares its own handler |
 
 ---
 
 ## 📊 Impact
 
 ### Code Changes
-- **outcome_types.go**: Added `OutcomeHandler` type + `Handler` field
-- **outcome_registry.go**: Replaced 20-line switch with 5-line handler call
+- **Tool_types.go**: Added `ToolHandler` type + `Handler` field
+- **Tool_registry.go**: Replaced 20-line switch with 5-line handler call
 - **README.md**: Updated to reflect simpler pattern
 
-### Adding New Outcomes
+### Adding New Tools
 
 **Before**: 4 steps (register, call registration, implement handler, **add to switch**)
 **After**: 3 steps (register **with handler**, call registration, implement handler)
@@ -73,14 +73,14 @@ func (r *OutcomeRegistry) ExecuteOutcome(...) {
 
 ```go
 // 1. Register with handler
-func (r *OutcomeRegistry) registerPauseInstanceOutcome() {
-    r.outcomes["pause-instance"] = &Outcome{
+func (r *ToolRegistry) registerPauseInstanceTool() {
+    r.Tools["pause-instance"] = &Tool{
         ID:          "pause-instance",
         Name:        "Pause Instance",
         Description: "Pause a running instance",
-        Type:        OutcomeTypeUpdate,
+        Type:        ToolTypeUpdate,
         ReadOnly:    false,
-        Parameters: []OutcomeParameter{
+        Parameters: []ToolParameter{
             {Name: "instance_id", Type: "string", Required: true},
         },
         Handler: executePauseInstance,  // ✅ Done!
@@ -88,9 +88,9 @@ func (r *OutcomeRegistry) registerPauseInstanceOutcome() {
 }
 
 // 2. Call registration
-func NewOutcomeRegistry() *OutcomeRegistry {
+func NewToolRegistry() *ToolRegistry {
     // ...
-    registry.registerPauseInstanceOutcome()
+    registry.registerPauseInstanceTool()
     return registry
 }
 
@@ -101,18 +101,18 @@ func executePauseInstance(ctx context.Context, parameters map[string]interface{}
     // ...
 }
 
-// ExecuteOutcome? NO CHANGES NEEDED! ✨
+// ExecuteTool? NO CHANGES NEEDED! ✨
 ```
 
 ---
 
 ## 🎯 Key Insight
 
-**Outcomes are now self-contained objects that know how to execute themselves.**
+**Tools are now self-contained objects that know how to execute themselves.**
 
 This is the **Strategy Pattern** in action:
-- Each outcome has its own execution strategy (handler)
-- ExecuteOutcome is a generic executor that delegates to the strategy
+- Each Tool has its own execution strategy (handler)
+- ExecuteTool is a generic executor that delegates to the strategy
 - No central routing logic needed
 
 ---

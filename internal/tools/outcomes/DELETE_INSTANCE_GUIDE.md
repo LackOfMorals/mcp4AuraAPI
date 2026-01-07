@@ -1,16 +1,16 @@
-# delete-instance Outcome - Implementation Guide
+# delete-instance Tool - Implementation Guide
 
 ## Overview
 
-The `delete-instance` outcome permanently deletes a Neo4j Aura database instance. This is a **destructive operation** that cannot be undone.
+The `delete-instance` Tool permanently deletes a Neo4j Aura database instance. This is a **destructive operation** that cannot be undone.
 
 ## Safety Features
 
 ### 1. Explicit Confirmation Required
-The outcome requires a `confirm` parameter set to `true` to proceed. This prevents accidental deletions.
+The Tool requires a `confirm` parameter set to `true` to proceed. This prevents accidental deletions.
 
 ### 2. Read-Only Mode Protection
-The outcome **will not execute** when the server is in read-only mode (`READ_ONLY=true`). This is enforced at the outcome execution level.
+The Tool **will not execute** when the server is in read-only mode (`READ_ONLY=true`). This is enforced at the Tool execution level.
 
 ### 3. Instance Verification
 Before deletion, the system retrieves instance details to:
@@ -30,7 +30,7 @@ Before deletion, the system retrieves instance details to:
 ### When READ_ONLY=true (default):
 ```json
 {
-  "outcome_id": "delete-instance",
+  "Tool_id": "delete-instance",
   "parameters": {
     "instance_id": "abc123",
     "confirm": true
@@ -44,7 +44,7 @@ Before deletion, the system retrieves instance details to:
   "isError": true,
   "content": [{
     "type": "text",
-    "text": "Cannot execute 'delete-instance' outcome: server is in read-only mode. Write operations are disabled. Set READ_ONLY=false to enable write operations."
+    "text": "Cannot execute 'delete-instance' Tool: server is in read-only mode. Write operations are disabled. Set READ_ONLY=false to enable write operations."
   }]
 }
 ```
@@ -54,11 +54,11 @@ The operation proceeds if confirmation is provided.
 
 ## Usage Examples
 
-### Step 1: Discover the Outcome
+### Step 1: Discover the Tool
 
 ```json
 {
-  "name": "list-outcomes",
+  "name": "list-Tools",
   "arguments": {}
 }
 ```
@@ -78,9 +78,9 @@ Response includes:
 
 ```json
 {
-  "name": "get-outcome-details",
+  "name": "get-Tool-details",
   "arguments": {
-    "outcome_id": "delete-instance"
+    "Tool_id": "delete-instance"
   }
 }
 ```
@@ -120,9 +120,9 @@ Response:
 **Successful Deletion:**
 ```json
 {
-  "name": "execute-outcome",
+  "name": "execute-Tool",
   "arguments": {
-    "outcome_id": "delete-instance",
+    "Tool_id": "delete-instance",
     "parameters": {
       "instance_id": "4f8e3b2a-1234-5678-90ab-cdef12345678",
       "confirm": true
@@ -148,7 +148,7 @@ Response:
 
 ```json
 {
-  "outcome_id": "delete-instance",
+  "Tool_id": "delete-instance",
   "parameters": {
     "instance_id": "abc123"
   }
@@ -170,7 +170,7 @@ Response:
 
 ```json
 {
-  "outcome_id": "delete-instance",
+  "Tool_id": "delete-instance",
   "parameters": {
     "instance_id": "abc123",
     "confirm": false
@@ -193,7 +193,7 @@ Response:
 
 ```json
 {
-  "outcome_id": "delete-instance",
+  "Tool_id": "delete-instance",
   "parameters": {
     "instance_id": "nonexistent-id",
     "confirm": true
@@ -216,7 +216,7 @@ Response:
 
 ```json
 {
-  "outcome_id": "delete-instance",
+  "Tool_id": "delete-instance",
   "parameters": {
     "instance_id": "abc123",
     "confirm": true
@@ -230,7 +230,7 @@ Response:
   "isError": true,
   "content": [{
     "type": "text",
-    "text": "Cannot execute 'delete-instance' outcome: server is in read-only mode. Write operations are disabled. Set READ_ONLY=false to enable write operations."
+    "text": "Cannot execute 'delete-instance' Tool: server is in read-only mode. Write operations are disabled. Set READ_ONLY=false to enable write operations."
   }]
 }
 ```
@@ -275,7 +275,7 @@ This cannot be undone. Are you sure you want to proceed?
 User: Yes, delete it
 
 Claude: Deleting 'test-db'...
-[Calls execute-outcome with delete-instance, confirm=true]
+[Calls execute-Tool with delete-instance, confirm=true]
 
 Claude: ✓ Instance 'test-db' has been successfully deleted. 
 The instance and all its data have been permanently removed.
@@ -372,7 +372,7 @@ npx @modelcontextprotocol/inspector ./bin/mcp-aura-api
 ```json
 // Without confirm - should fail
 {
-  "outcome_id": "delete-instance",
+  "Tool_id": "delete-instance",
   "parameters": {
     "instance_id": "test-id"
   }
@@ -380,7 +380,7 @@ npx @modelcontextprotocol/inspector ./bin/mcp-aura-api
 
 // With confirm=false - should fail
 {
-  "outcome_id": "delete-instance",
+  "Tool_id": "delete-instance",
   "parameters": {
     "instance_id": "test-id",
     "confirm": false
@@ -389,7 +389,7 @@ npx @modelcontextprotocol/inspector ./bin/mcp-aura-api
 
 // With confirm=true - should succeed (if READ_ONLY=false)
 {
-  "outcome_id": "delete-instance",
+  "Tool_id": "delete-instance",
   "parameters": {
     "instance_id": "test-id",
     "confirm": true
@@ -420,7 +420,7 @@ npx @modelcontextprotocol/inspector ./bin/mcp-aura-api
 ### Read-Only Protection Layers
 
 1. **Server Level**: READ_ONLY environment variable
-2. **Outcome Level**: ExecuteOutcome checks outcome.ReadOnly flag
+2. **Tool Level**: ExecuteTool checks Tool.ReadOnly flag
 3. **Parameter Level**: Explicit confirm parameter required
 4. **API Level**: Aura API enforces permissions
 
@@ -428,13 +428,13 @@ This defense-in-depth approach prevents accidental deletions.
 
 ### Why Tool-Level readonly=true?
 
-The `execute-outcome` tool is marked as `readonly: true` at the tool level, even though it can execute write operations. This is because:
+The `execute-Tool` tool is marked as `readonly: true` at the tool level, even though it can execute write operations. This is because:
 
-1. The tool itself just routes to outcomes
-2. Individual outcomes have their own readonly flags
-3. ExecuteOutcome checks the outcome's readonly flag against server config
-4. This allows read-only outcomes to execute even in READ_ONLY mode
-5. Write outcomes are blocked at execution time with a clear error message
+1. The tool itself just routes to Tools
+2. Individual Tools have their own readonly flags
+3. ExecuteTool checks the Tool's readonly flag against server config
+4. This allows read-only Tools to execute even in READ_ONLY mode
+5. Write Tools are blocked at execution time with a clear error message
 
 ## Troubleshooting
 

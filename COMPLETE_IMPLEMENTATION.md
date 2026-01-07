@@ -2,20 +2,20 @@
 
 ## Session Overview
 
-This session implemented a three-tool outcome pattern for the Neo4j Aura MCP server and added two write operations: `create-instance` and `delete-instance`.
+This session implemented a three-tool Tool pattern for the Neo4j Aura MCP server and added two write operations: `create-instance` and `delete-instance`.
 
 ---
 
 ## 🎯 What Was Built
 
-### Three-Tool Outcome Pattern
+### Three-Tool Tool Pattern
 A new architecture for exposing MCP operations:
 
-1. **list-outcomes** - Discover available operations
-2. **get-outcome-details** - Get parameter specifications
-3. **execute-outcome** - Execute operations with parameters
+1. **list-Tools** - Discover available operations
+2. **get-Tool-details** - Get parameter specifications
+3. **execute-Tool** - Execute operations with parameters
 
-### Three Outcomes Implemented
+### Three Tools Implemented
 
 1. **list-instances** (read-only)
    - Lists all Neo4j Aura instances
@@ -38,18 +38,18 @@ A new architecture for exposing MCP operations:
 ## 📁 All Files Created (12 new files)
 
 ### Core Implementation
-1. `internal/tools/outcomes/outcome_types.go` - Data structures
-2. `internal/tools/outcomes/outcome_registry.go` - Registry + all outcomes
-3. `internal/tools/outcomes/outcome_specs.go` - MCP tool specifications
-4. `internal/tools/outcomes/outcome_handlers.go` - Request handlers
+1. `internal/tools/Tools/Tool_types.go` - Data structures
+2. `internal/tools/Tools/Tool_registry.go` - Registry + all Tools
+3. `internal/tools/Tools/Tool_specs.go` - MCP tool specifications
+4. `internal/tools/Tools/Tool_handlers.go` - Request handlers
 
 ### Documentation
-5. `internal/tools/outcomes/README.md` - Pattern documentation
-6. `internal/tools/outcomes/ARCHITECTURE.md` - Visual diagrams
-7. `internal/tools/outcomes/CREATE_INSTANCE_NOTES.md` - Create implementation notes
-8. `internal/tools/outcomes/CREATE_INSTANCE_EXAMPLES.md` - Create usage examples
-9. `internal/tools/outcomes/DELETE_INSTANCE_GUIDE.md` - Delete comprehensive guide
-10. `OUTCOME_PATTERN_SUMMARY.md` - Quick start guide
+5. `internal/tools/Tools/README.md` - Pattern documentation
+6. `internal/tools/Tools/ARCHITECTURE.md` - Visual diagrams
+7. `internal/tools/Tools/CREATE_INSTANCE_NOTES.md` - Create implementation notes
+8. `internal/tools/Tools/CREATE_INSTANCE_EXAMPLES.md` - Create usage examples
+9. `internal/tools/Tools/DELETE_INSTANCE_GUIDE.md` - Delete comprehensive guide
+10. `Tool_PATTERN_SUMMARY.md` - Quick start guide
 11. `CREATE_INSTANCE_SUMMARY.md` - Create implementation summary
 12. `DELETE_INSTANCE_SUMMARY.md` - Delete implementation summary
 
@@ -63,11 +63,11 @@ A new architecture for exposing MCP operations:
 2. **`internal/server/tools_register.go`**
    - Added 3 new tool registrations
    - Updated to pass config to dependencies
-   - Changed execute-outcome to readonly: true
+   - Changed execute-Tool to readonly: true
 
-3. **`internal/tools/outcomes/outcome_registry.go`**
-   - Added create-instance outcome
-   - Added delete-instance outcome
+3. **`internal/tools/Tools/Tool_registry.go`**
+   - Added create-instance Tool
+   - Added delete-instance Tool
    - Added read-only protection logic
 
 4. **`CHANGES_SUMMARY.md`** (this file)
@@ -99,17 +99,17 @@ A new architecture for exposing MCP operations:
 
 ```
 When READ_ONLY=true (default):
-├─ list-outcomes → Works (discover operations)
-├─ get-outcome-details → Works (see parameters)
-└─ execute-outcome
+├─ list-Tools → Works (discover operations)
+├─ get-Tool-details → Works (see parameters)
+└─ execute-Tool
    ├─ list-instances → Works (read operation)
    ├─ create-instance → Blocked (write operation)
    └─ delete-instance → Blocked (write operation)
 
 When READ_ONLY=false:
-├─ list-outcomes → Works
-├─ get-outcome-details → Works
-└─ execute-outcome
+├─ list-Tools → Works
+├─ get-Tool-details → Works
+└─ execute-Tool
    ├─ list-instances → Works
    ├─ create-instance → Works
    └─ delete-instance → Works (with confirmation)
@@ -126,7 +126,7 @@ When READ_ONLY=false:
 | Total Lines of Code | ~690 |
 | Total Lines of Documentation | ~2,500+ |
 | New MCP Tools | 3 |
-| New Outcomes | 3 |
+| New Tools | 3 |
 | Safety Features | Multiple layers |
 
 ---
@@ -137,8 +137,8 @@ When READ_ONLY=false:
 - [ ] `go build -o bin/mcp-aura-api ./cmd/mcp-aura-api` succeeds
 
 ### Default Mode (READ_ONLY=true)
-- [ ] list-outcomes returns 3 outcomes
-- [ ] get-outcome-details works for all outcomes
+- [ ] list-Tools returns 3 Tools
+- [ ] get-Tool-details works for all Tools
 - [ ] execute list-instances works
 - [ ] execute create-instance fails with read-only error
 - [ ] execute delete-instance fails with read-only error
@@ -194,14 +194,14 @@ export CLIENT_SECRET="your-secret"
 
 | Topic | Document |
 |-------|----------|
-| Overall pattern | `internal/tools/outcomes/README.md` |
-| Architecture diagrams | `internal/tools/outcomes/ARCHITECTURE.md` |
-| Quick start | `OUTCOME_PATTERN_SUMMARY.md` |
+| Overall pattern | `internal/tools/Tools/README.md` |
+| Architecture diagrams | `internal/tools/Tools/ARCHITECTURE.md` |
+| Quick start | `Tool_PATTERN_SUMMARY.md` |
 | create-instance implementation | `CREATE_INSTANCE_SUMMARY.md` |
 | create-instance API notes | `CREATE_INSTANCE_NOTES.md` |
 | create-instance examples | `CREATE_INSTANCE_EXAMPLES.md` |
 | delete-instance implementation | `DELETE_INSTANCE_SUMMARY.md` |
-| delete-instance complete guide | `internal/tools/outcomes/DELETE_INSTANCE_GUIDE.md` |
+| delete-instance complete guide | `internal/tools/Tools/DELETE_INSTANCE_GUIDE.md` |
 | All changes | This document |
 
 ---
@@ -210,16 +210,16 @@ export CLIENT_SECRET="your-secret"
 
 ### API Call Verification Required
 
-Both create and delete outcomes make assumptions about the aura-client API:
+Both create and delete Tools make assumptions about the aura-client API:
 
-**create-instance** (line 272 in outcome_registry.go):
+**create-instance** (line 272 in Tool_registry.go):
 ```go
 instance, err := deps.AClient.Instances.Create(
     name, cloudProvider, region, memory, type, version
 )
 ```
 
-**delete-instance** (line 202 in outcome_registry.go):
+**delete-instance** (line 202 in Tool_registry.go):
 ```go
 instanceInfo, err := deps.AClient.Instances.Get(instanceID)
 err = deps.AClient.Instances.Delete(instanceID)
@@ -232,8 +232,8 @@ err = deps.AClient.Instances.Delete(instanceID)
 ## 🎯 Success Criteria
 
 ✅ Three-tool pattern implemented
-✅ create-instance outcome complete
-✅ delete-instance outcome complete with safety features
+✅ create-instance Tool complete
+✅ delete-instance Tool complete with safety features
 ✅ Read-only mode protection implemented
 ✅ Confirmation requirement for deletions
 ✅ Comprehensive documentation created
@@ -274,7 +274,7 @@ err = deps.AClient.Instances.Delete(instanceID)
    - Deploy with READ_ONLY=true for safety
    - Enable READ_ONLY=false only when needed
 
-6. **Add More Outcomes** (future)
+6. **Add More Tools** (future)
    - get-instance-details
    - pause-instance
    - resume-instance
@@ -284,9 +284,9 @@ err = deps.AClient.Instances.Delete(instanceID)
 
 ## 💡 Key Architectural Decisions
 
-### 1. Tool-Level vs Outcome-Level Read-Only
+### 1. Tool-Level vs Tool-Level Read-Only
 
-**Decision**: execute-outcome tool is readonly: true, but checks outcome.ReadOnly at execution time.
+**Decision**: execute-Tool tool is readonly: true, but checks Tool.ReadOnly at execution time.
 
 **Rationale**:
 - Allows read operations in READ_ONLY mode
@@ -324,10 +324,10 @@ err = deps.AClient.Instances.Delete(instanceID)
 
 ## 🎉 Summary
 
-Successfully implemented a comprehensive, production-ready outcome pattern for the Neo4j Aura MCP server with:
+Successfully implemented a comprehensive, production-ready Tool pattern for the Neo4j Aura MCP server with:
 
 - ✅ Token-efficient three-tool design
-- ✅ Extensible outcome registry
+- ✅ Extensible Tool registry
 - ✅ Complete CRUD operations (List, Create, Delete)
 - ✅ Multiple safety layers for write operations
 - ✅ Clear error messages

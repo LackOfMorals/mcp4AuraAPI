@@ -2,7 +2,7 @@
 
 ## ✨ What Was Added
 
-Successfully implemented the `delete-instance` outcome with comprehensive safety features:
+Successfully implemented the `delete-instance` Tool with comprehensive safety features:
 - ✅ Explicit confirmation requirement
 - ✅ Read-only mode protection
 - ✅ Instance verification before deletion
@@ -18,9 +18,9 @@ Users **must** explicitly set `confirm: true` to delete an instance. This preven
 - UI bugs triggering deletions
 
 ### 2. Read-Only Mode Protection
-When `READ_ONLY=true` (default), the outcome returns:
+When `READ_ONLY=true` (default), the Tool returns:
 ```
-Cannot execute 'delete-instance' outcome: server is in read-only mode. 
+Cannot execute 'delete-instance' Tool: server is in read-only mode. 
 Write operations are disabled. Set READ_ONLY=false to enable write operations.
 ```
 
@@ -35,20 +35,20 @@ Before deleting, the system:
 ### Modified Files (4)
 1. **`internal/tools/types.go`**
    - Added `Config` field to `ToolDependencies`
-   - Enables config access in outcome execution
+   - Enables config access in Tool execution
 
 2. **`internal/server/tools_register.go`**
    - Updated to pass config to dependencies
-   - Changed `execute-outcome` to `readonly: true`
+   - Changed `execute-Tool` to `readonly: true`
 
-3. **`internal/tools/outcomes/outcome_registry.go`**
-   - Added `registerDeleteInstanceOutcome()`
+3. **`internal/tools/Tools/Tool_registry.go`**
+   - Added `registerDeleteInstanceTool()`
    - Added `executeDeleteInstance()`
-   - Added read-only check in `ExecuteOutcome()`
+   - Added read-only check in `ExecuteTool()`
    - ~90 lines added
 
 ### Created Files (1)
-4. **`internal/tools/outcomes/DELETE_INSTANCE_GUIDE.md`**
+4. **`internal/tools/Tools/DELETE_INSTANCE_GUIDE.md`**
    - Complete implementation guide
    - Usage examples
    - Error scenarios
@@ -61,7 +61,7 @@ Before deleting, the system:
 | instance_id | string | Yes | ID of instance to delete |
 | confirm | boolean | Yes | Must be `true` to proceed |
 
-## 🔄 Outcome Behavior
+## 🔄 Tool Behavior
 
 ### Success Path
 ```
@@ -89,46 +89,46 @@ Before deleting, the system:
 
 ### Before This Implementation
 ```
-execute-outcome tool (readonly: false)
+execute-Tool tool (readonly: false)
   ↓
   Filtered out entirely in READ_ONLY mode
   ↓
-  NO outcomes could execute in read-only mode
+  NO Tools could execute in read-only mode
 ```
 
 ### After This Implementation
 ```
-execute-outcome tool (readonly: true)
+execute-Tool tool (readonly: true)
   ↓
   Always available
   ↓
-  ExecuteOutcome checks outcome.ReadOnly + Config.ReadOnly
+  ExecuteTool checks Tool.ReadOnly + Config.ReadOnly
   ↓
-  - Read-only outcomes: Always execute
-  - Write outcomes: Only execute if READ_ONLY=false
+  - Read-only Tools: Always execute
+  - Write Tools: Only execute if READ_ONLY=false
 ```
 
 ## ✅ Key Improvements
 
 ### 1. Granular Control
-- Read-only outcomes work in READ_ONLY mode
-- Write outcomes blocked with clear error
-- No need to hide entire execute-outcome tool
+- Read-only Tools work in READ_ONLY mode
+- Write Tools blocked with clear error
+- No need to hide entire execute-Tool tool
 
 ### 2. Better UX
-- Users can discover outcomes even in read-only mode
+- Users can discover Tools even in read-only mode
 - Clear error messages explain why operations are blocked
 - Explicit confirmation prevents accidents
 
 ### 3. Defense in Depth
 1. **Config Level**: READ_ONLY environment variable
-2. **Outcome Level**: ReadOnly flag checked against config
+2. **Tool Level**: ReadOnly flag checked against config
 3. **Parameter Level**: Explicit confirmation required
 4. **API Level**: Aura API permission checks
 
-## 📊 Current Outcomes
+## 📊 Current Tools
 
-| Outcome | Type | ReadOnly | Notes |
+| Tool | Type | ReadOnly | Notes |
 |---------|------|----------|-------|
 | list-instances | list | Yes | Always available |
 | create-instance | create | No | Blocked when READ_ONLY=true |
@@ -138,7 +138,7 @@ execute-outcome tool (readonly: true)
 
 - [ ] Build succeeds
 - [ ] In READ_ONLY mode (default):
-  - [ ] list-outcomes shows all 3 outcomes
+  - [ ] list-Tools shows all 3 Tools
   - [ ] list-instances executes successfully
   - [ ] create-instance fails with read-only error
   - [ ] delete-instance fails with read-only error
@@ -203,7 +203,7 @@ Are you absolutely sure you want to proceed with deletion?
 
 User: Yes, I'm sure
 
-Claude: [Calls execute-outcome with delete-instance, confirm=true]
+Claude: [Calls execute-Tool with delete-instance, confirm=true]
 
 ✓ Success! Instance 'test-db' has been permanently deleted.
 The instance and all its data have been removed and cannot be recovered.
@@ -276,7 +276,7 @@ err = deps.AClient.Instances.Delete(instanceID)
    - Try with confirm=false
    - Try with confirm=true
 
-5. **Consider Additional Outcomes**
+5. **Consider Additional Tools**
    - pause-instance
    - resume-instance
    - resize-instance
@@ -299,7 +299,7 @@ err = deps.AClient.Instances.Delete(instanceID)
 ✅ Respects READ_ONLY configuration
 ✅ Returns detailed error messages
 ✅ Verifies instance before deletion
-✅ Works seamlessly with outcome pattern
+✅ Works seamlessly with Tool pattern
 ✅ Comprehensive documentation provided
 
 **Ready for testing!** 🚀

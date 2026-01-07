@@ -1,6 +1,6 @@
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                     MCP Outcome Pattern Flow                             │
+│                     MCP Tool Pattern Flow                             │
 └─────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────┐
@@ -12,14 +12,14 @@
      ├──────────────────────────────────────────────────────┐
      │                                                       │
      │                                      ┌────────────────▼──────────────┐
-     │                                      │  list-outcomes                │
-     │                                      │  (outcome_handlers.go)        │
+     │                                      │  list-Tools                │
+     │                                      │  (Tool_handlers.go)        │
      │                                      └────────────────┬──────────────┘
      │                                                       │
      │                                      ┌────────────────▼──────────────┐
-     │                                      │  OutcomeRegistry              │
+     │                                      │  ToolRegistry              │
      │                                      │  GetAllSummaries()            │
-     │                                      │  (outcome_registry.go)        │
+     │                                      │  (Tool_registry.go)        │
      │                                      └────────────────┬──────────────┘
      │                                                       │
      │ ◄─────────────────────────────────────────────────────┤
@@ -31,14 +31,14 @@
      ├──────────────────────────────────────────────────────┐
      │                                                       │
      │                                      ┌────────────────▼──────────────┐
-     │                                      │  get-outcome-details          │
-     │                                      │  (outcome_handlers.go)        │
+     │                                      │  get-Tool-details          │
+     │                                      │  (Tool_handlers.go)        │
      │                                      └────────────────┬──────────────┘
      │                                                       │
      │                                      ┌────────────────▼──────────────┐
-     │                                      │  OutcomeRegistry              │
-     │                                      │  GetOutcome("list-instances") │
-     │                                      │  (outcome_registry.go)        │
+     │                                      │  ToolRegistry              │
+     │                                      │  GetTool("list-instances") │
+     │                                      │  (Tool_registry.go)        │
      │                                      └────────────────┬──────────────┘
      │                                                       │
      │ ◄─────────────────────────────────────────────────────┤
@@ -50,19 +50,19 @@
      ├──────────────────────────────────────────────────────┐
      │                                                       │
      │                                      ┌────────────────▼──────────────┐
-     │                                      │  execute-outcome              │
-     │                                      │  (outcome_handlers.go)        │
+     │                                      │  execute-Tool              │
+     │                                      │  (Tool_handlers.go)        │
      │                                      └────────────────┬──────────────┘
      │                                                       │
      │                                      ┌────────────────▼──────────────┐
-     │                                      │  OutcomeRegistry              │
-     │                                      │  ExecuteOutcome(...)          │
-     │                                      │  (outcome_registry.go)        │
+     │                                      │  ToolRegistry              │
+     │                                      │  ExecuteTool(...)          │
+     │                                      │  (Tool_registry.go)        │
      │                                      └────────────────┬──────────────┘
      │                                                       │
      │                                      ┌────────────────▼──────────────┐
      │                                      │  executeListInstances()       │
-     │                                      │  (outcome_registry.go)        │
+     │                                      │  (Tool_registry.go)        │
      │                                      └────────────────┬──────────────┘
      │                                                       │
      │                                      ┌────────────────▼──────────────┐
@@ -84,81 +84,81 @@
 └─────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────┐
-│  outcome_types.go   │  Defines data structures
-│  - Outcome          │  - Outcome: Full operation definition
-│  - OutcomeSummary   │  - OutcomeSummary: Brief overview
-│  - OutcomeParameter │  - OutcomeParameter: Parameter spec
+│  Tool_types.go   │  Defines data structures
+│  - Tool          │  - Tool: Full operation definition
+│  - ToolSummary   │  - ToolSummary: Brief overview
+│  - ToolParameter │  - ToolParameter: Parameter spec
 └─────────────────────┘
 
 ┌──────────────────────┐
-│ outcome_registry.go  │  Central management
-│  - NewOutcomeRegistry│  - Registers all outcomes
-│  - GetAllSummaries   │  - Returns outcome list
-│  - GetOutcome        │  - Returns outcome details
-│  - ExecuteOutcome    │  - Routes to execution logic
-│  - execute*()        │  - Individual outcome implementations
+│ Tool_registry.go  │  Central management
+│  - NewToolRegistry│  - Registers all Tools
+│  - GetAllSummaries   │  - Returns Tool list
+│  - GetTool        │  - Returns Tool details
+│  - ExecuteTool    │  - Routes to execution logic
+│  - execute*()        │  - Individual Tool implementations
 └──────────────────────┘
 
 ┌─────────────────────┐
-│ outcome_specs.go    │  MCP Tool Definitions
-│  - ListOutcomesSpec │  - Tool: list-outcomes
-│  - GetOutcome...    │  - Tool: get-outcome-details
-│  - ExecuteOutcome...│  - Tool: execute-outcome
+│ Tool_specs.go    │  MCP Tool Definitions
+│  - ListToolsSpec │  - Tool: list-Tools
+│  - GetTool...    │  - Tool: get-Tool-details
+│  - ExecuteTool...│  - Tool: execute-Tool
 └─────────────────────┘
 
 ┌──────────────────────┐
-│ outcome_handlers.go  │  MCP Request Handlers
-│  - ListOutcomes...   │  - Handles list-outcomes requests
-│  - GetOutcomeDetails │  - Handles get-outcome-details requests
-│  - ExecuteOutcome... │  - Handles execute-outcome requests
+│ Tool_handlers.go  │  MCP Request Handlers
+│  - ListTools...   │  - Handles list-Tools requests
+│  - GetToolDetails │  - Handles get-Tool-details requests
+│  - ExecuteTool... │  - Handles execute-Tool requests
 └──────────────────────┘
 
 
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    Adding New Outcomes                                   │
+│                    Adding New Tools                                   │
 └─────────────────────────────────────────────────────────────────────────┘
 
-Step 1: Define the outcome in outcome_registry.go
+Step 1: Define the Tool in Tool_registry.go
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ func (r *OutcomeRegistry) registerNewOutcome() {                        │
-│     r.outcomes["new-outcome"] = &Outcome{                               │
-│         ID:          "new-outcome",                                      │
-│         Name:        "New Outcome",                                      │
+│ func (r *ToolRegistry) registerNewTool() {                        │
+│     r.Tools["new-Tool"] = &Tool{                               │
+│         ID:          "new-Tool",                                      │
+│         Name:        "New Tool",                                      │
 │         Description: "...",                                              │
-│         Parameters:  []OutcomeParameter{...},                           │
+│         Parameters:  []ToolParameter{...},                           │
 │     }                                                                    │
 │ }                                                                        │
 └─────────────────────────────────────────────────────────────────────────┘
 
-Step 2: Register it in NewOutcomeRegistry()
+Step 2: Register it in NewToolRegistry()
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ func NewOutcomeRegistry() *OutcomeRegistry {                            │
-│     registry := &OutcomeRegistry{...}                                   │
-│     registry.registerListInstancesOutcome()                             │
-│     registry.registerNewOutcome()  // ADD THIS                          │
+│ func NewToolRegistry() *ToolRegistry {                            │
+│     registry := &ToolRegistry{...}                                   │
+│     registry.registerListInstancesTool()                             │
+│     registry.registerNewTool()  // ADD THIS                          │
 │     return registry                                                     │
 │ }                                                                        │
 └─────────────────────────────────────────────────────────────────────────┘
 
 Step 3: Implement the execution
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ func executeNewOutcome(ctx, params, deps) (*mcp.CallToolResult, error) {│
+│ func executeNewTool(ctx, params, deps) (*mcp.CallToolResult, error) {│
 │     // Your implementation here                                         │
 │     return mcp.NewToolResultText(result), nil                           │
 │ }                                                                        │
 └─────────────────────────────────────────────────────────────────────────┘
 
-Step 4: Add case in ExecuteOutcome()
+Step 4: Add case in ExecuteTool()
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ func (r *OutcomeRegistry) ExecuteOutcome(...) {                         │
+│ func (r *ToolRegistry) ExecuteTool(...) {                         │
 │     switch id {                                                          │
 │     case "list-instances":                                               │
 │         return executeListInstances(...)                                 │
-│     case "new-outcome":  // ADD THIS                                     │
-│         return executeNewOutcome(...)                                    │
+│     case "new-Tool":  // ADD THIS                                     │
+│         return executeNewTool(...)                                    │
 │     }                                                                    │
 │ }                                                                        │
 └─────────────────────────────────────────────────────────────────────────┘
 
-Done! The three MCP tools automatically expose your new outcome.
+Done! The three MCP tools automatically expose your new Tool.
 ```

@@ -1,16 +1,16 @@
-# Using create-instance Outcome - Examples
+# Using create-instance Tool - Examples
 
 ## Flow Overview
 
 ```
-1. list-outcomes          → See "create-instance" is available
-2. get-outcome-details    → Get parameter specifications
-3. execute-outcome        → Create the instance
+1. list-Tools          → See "create-instance" is available
+2. get-Tool-details    → Get parameter specifications
+3. execute-Tool        → Create the instance
 ```
 
 ## Step-by-Step Example
 
-### 1. Discover the Outcome
+### 1. Discover the Tool
 
 **Request:**
 ```json
@@ -19,7 +19,7 @@
   "id": 1,
   "method": "tools/call",
   "params": {
-    "name": "list-outcomes",
+    "name": "list-Tools",
     "arguments": {}
   }
 }
@@ -54,9 +54,9 @@
   "id": 2,
   "method": "tools/call",
   "params": {
-    "name": "get-outcome-details",
+    "name": "get-Tool-details",
     "arguments": {
-      "outcome_id": "create-instance"
+      "Tool_id": "create-instance"
     }
   }
 }
@@ -115,7 +115,7 @@
 }
 ```
 
-### 3. Execute the Outcome
+### 3. Execute the Tool
 
 #### Example 1: Create a Professional GCP Instance
 
@@ -126,9 +126,9 @@
   "id": 3,
   "method": "tools/call",
   "params": {
-    "name": "execute-outcome",
+    "name": "execute-Tool",
     "arguments": {
-      "outcome_id": "create-instance",
+      "Tool_id": "create-instance",
       "parameters": {
         "name": "my-production-db",
         "cloud_provider": "gcp",
@@ -166,9 +166,9 @@
   "id": 4,
   "method": "tools/call",
   "params": {
-    "name": "execute-outcome",
+    "name": "execute-Tool",
     "arguments": {
-      "outcome_id": "create-instance",
+      "Tool_id": "create-instance",
       "parameters": {
         "name": "dev-testing-db",
         "cloud_provider": "aws",
@@ -192,9 +192,9 @@ Note: The `version` parameter is omitted, so it will use the default "5".
   "id": 5,
   "method": "tools/call",
   "params": {
-    "name": "execute-outcome",
+    "name": "execute-Tool",
     "arguments": {
-      "outcome_id": "create-instance",
+      "Tool_id": "create-instance",
       "parameters": {
         "name": "enterprise-analytics",
         "cloud_provider": "azure",
@@ -215,7 +215,7 @@ Note: The `version` parameter is omitted, so it will use the default "5".
 **Request:**
 ```json
 {
-  "outcome_id": "create-instance",
+  "Tool_id": "create-instance",
   "parameters": {
     "name": "my-db",
     "cloud_provider": "gcp"
@@ -242,7 +242,7 @@ Note: The `version` parameter is omitted, so it will use the default "5".
 **Request:**
 ```json
 {
-  "outcome_id": "create-instance",
+  "Tool_id": "create-instance",
   "parameters": {
     "name": "my-db",
     "cloud_provider": "digitalocean",  // Invalid
@@ -271,7 +271,7 @@ Note: The `version` parameter is omitted, so it will use the default "5".
 **Request:**
 ```json
 {
-  "outcome_id": "create-instance",
+  "Tool_id": "create-instance",
   "parameters": {
     "name": "my-db",
     "cloud_provider": "gcp",
@@ -332,12 +332,12 @@ Note: The `version` parameter is omitted, so it will use the default "5".
 
 ## Monitoring Instance Creation
 
-After creating an instance, the status will be "creating". You can poll the instance using the `list-instances` outcome to check when it becomes "running":
+After creating an instance, the status will be "creating". You can poll the instance using the `list-instances` Tool to check when it becomes "running":
 
 **Poll Request:**
 ```json
 {
-  "outcome_id": "list-instances",
+  "Tool_id": "list-instances",
   "parameters": {}
 }
 ```
@@ -356,7 +356,7 @@ When using with Claude, the conversation would look like:
 User: Create a new Neo4j database for our analytics project on GCP
 
 Claude: I'll create a Neo4j Aura instance for you. Let me execute that.
-[Calls execute-outcome with create-instance]
+[Calls execute-Tool with create-instance]
 
 Claude: I've successfully created your Neo4j instance:
 - Name: analytics-project-db
@@ -372,6 +372,6 @@ The instance is currently being provisioned. It should be ready in a few minutes
 ## Next Steps After Creation
 
 1. **Wait for Running Status**: Poll until status is "running"
-2. **Get Credentials**: Retrieve database credentials (may need another outcome)
+2. **Get Credentials**: Retrieve database credentials (may need another Tool)
 3. **Connect**: Use the connection URL with Neo4j drivers
 4. **Configure**: Set up users, constraints, indexes as needed

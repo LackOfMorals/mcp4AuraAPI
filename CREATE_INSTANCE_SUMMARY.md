@@ -1,16 +1,16 @@
-# ✨ create-instance Outcome - Complete Implementation
+# ✨ create-instance Tool - Complete Implementation
 
 ## Summary
 
-Successfully added the `create-instance` outcome to your MCP server! Users can now create Neo4j Aura database instances through Claude with full parameter validation.
+Successfully added the `create-instance` Tool to your MCP server! Users can now create Neo4j Aura database instances through Claude with full parameter validation.
 
 ## What Was Added
 
-### 1. Outcome Registration
-**File**: `internal/tools/outcomes/outcome_registry.go`
-- Added `registerCreateInstanceOutcome()` method
-- Registered in `NewOutcomeRegistry()`
-- Added execution case in `ExecuteOutcome()` switch
+### 1. Tool Registration
+**File**: `internal/tools/Tools/Tool_registry.go`
+- Added `registerCreateInstanceTool()` method
+- Registered in `NewToolRegistry()`
+- Added execution case in `ExecuteTool()` switch
 - Implemented `executeCreateInstance()` with full validation
 
 ### 2. Documentation
@@ -18,8 +18,8 @@ Successfully added the `create-instance` outcome to your MCP server! Users can n
 - **CREATE_INSTANCE_EXAMPLES.md** - Complete usage examples and scenarios
 
 ### 3. Updated Files
-- **outcome_registry.go** - ~170 lines added
-- **OUTCOME_PATTERN_SUMMARY.md** - Updated with create-instance info
+- **Tool_registry.go** - ~170 lines added
+- **Tool_PATTERN_SUMMARY.md** - Updated with create-instance info
 
 ## Parameters
 
@@ -51,11 +51,11 @@ Successfully added the `create-instance` outcome to your MCP server! Users can n
 ```
 User: "Create a database"
   ↓
-Claude calls: list-outcomes
+Claude calls: list-Tools
   ↓ Sees create-instance
-Claude calls: get-outcome-details (outcome_id="create-instance")
+Claude calls: get-Tool-details (Tool_id="create-instance")
   ↓ Gets parameter specs
-Claude calls: execute-outcome with parameters
+Claude calls: execute-Tool with parameters
   ↓
 Instance created! ✨
 ```
@@ -64,9 +64,9 @@ Instance created! ✨
 
 ```json
 {
-  "name": "execute-outcome",
+  "name": "execute-Tool",
   "arguments": {
-    "outcome_id": "create-instance",
+    "Tool_id": "create-instance",
     "parameters": {
       "name": "analytics-db",
       "cloud_provider": "gcp",
@@ -97,7 +97,7 @@ Instance created! ✨
 
 ## ⚠️ Important Note
 
-**The API call structure on line 272 of `outcome_registry.go` may need adjustment:**
+**The API call structure on line 272 of `Tool_registry.go` may need adjustment:**
 
 ```go
 instance, err := deps.AClient.Instances.Create(
@@ -134,9 +134,9 @@ npx @modelcontextprotocol/inspector ./bin/mcp-aura-api
 
 ### 3. Test the Flow
 ```
-1. Call list-outcomes → Should see "create-instance"
-2. Call get-outcome-details with outcome_id="create-instance"
-3. Call execute-outcome with valid parameters
+1. Call list-Tools → Should see "create-instance"
+2. Call get-Tool-details with Tool_id="create-instance"
+3. Call execute-Tool with valid parameters
 ```
 
 ## Error Handling
@@ -154,9 +154,9 @@ All errors return descriptive messages to the user.
 ## Integration with Claude
 
 Claude will automatically:
-1. Discover create-instance through list-outcomes
-2. Understand parameters through get-outcome-details
-3. Validate user input before calling execute-outcome
+1. Discover create-instance through list-Tools
+2. Understand parameters through get-Tool-details
+3. Validate user input before calling execute-Tool
 4. Handle errors gracefully
 
 Example conversation:
@@ -177,14 +177,14 @@ Claude: And which GCP region? (e.g., us-central1, us-east1)
 User: us-central1
 
 Claude: Creating your instance...
-[Executes create-instance outcome]
+[Executes create-instance Tool]
 Done! Your instance is being created and will be ready shortly.
 ```
 
 ## Benefits
 
 1. **Type Safety** - Parameters clearly defined and validated
-2. **Self-Documenting** - Users can discover capabilities through list-outcomes
+2. **Self-Documenting** - Users can discover capabilities through list-Tools
 3. **Flexible** - Easy to add more creation options in the future
 4. **Error Handling** - Comprehensive validation before API call
 5. **Consistent Pattern** - Follows the same pattern as list-instances
@@ -204,11 +204,11 @@ Each follows the same pattern - just add to the registry!
 ## File Structure
 
 ```
-internal/tools/outcomes/
-├── outcome_types.go           # Data structures
-├── outcome_registry.go        # Registry + create-instance ✨
-├── outcome_specs.go           # Tool specifications
-├── outcome_handlers.go        # Request handlers
+internal/tools/Tools/
+├── Tool_types.go           # Data structures
+├── Tool_registry.go        # Registry + create-instance ✨
+├── Tool_specs.go           # Tool specifications
+├── Tool_handlers.go        # Request handlers
 ├── README.md                  # Pattern documentation
 ├── ARCHITECTURE.md            # Visual diagrams
 ├── CREATE_INSTANCE_NOTES.md   # Implementation notes ✨
@@ -228,7 +228,7 @@ internal/tools/outcomes/
 
 1. **How do I adjust the API call?** → See CREATE_INSTANCE_NOTES.md
 2. **How do I use it?** → See CREATE_INSTANCE_EXAMPLES.md
-3. **How do I add more outcomes?** → See README.md
+3. **How do I add more Tools?** → See README.md
 4. **Architecture details?** → See ARCHITECTURE.md
 
 ---

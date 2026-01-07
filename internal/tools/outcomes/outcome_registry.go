@@ -6,80 +6,81 @@ import (
 	"fmt"
 
 	"github.com/LackOfMorals/aura-client"
-	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/Outcomes"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-// OutcomeRegistry manages all available outcomes
+// OutcomeRegistry manages all available Outcomes
+
 type OutcomeRegistry struct {
-	outcomes map[string]*Outcome
+	Outcomes map[string]*Outcome
 }
 
-// NewOutcomeRegistry creates a new outcome registry with all available outcomes
+// NewOutcomeRegistry creates a new Outcome registry with all available Outcomes
 func NewOutcomeRegistry() *OutcomeRegistry {
 	registry := &OutcomeRegistry{
-		outcomes: make(map[string]*Outcome),
+		Outcomes: make(map[string]*Outcome),
 	}
 
-	// Register all available outcomes
+	// Register all available Outcomes
 	registry.registerListInstancesOutcome()
 	registry.registerCreateInstanceOutcome()
 	registry.registerDeleteInstanceOutcome()
-	// Add more outcomes here as they are developed
+	// Add more Outcomes here as they are developed
 
 	return registry
 }
 
-// GetAllSummaries returns summaries of all outcomes
+// GetAllSummaries returns summaries of all Outcomes
 func (r *OutcomeRegistry) GetAllSummaries() []OutcomeSummary {
-	summaries := make([]OutcomeSummary, 0, len(r.outcomes))
-	for _, outcome := range r.outcomes {
+	summaries := make([]OutcomeSummary, 0, len(r.Outcomes))
+	for _, Outcome := range r.Outcomes {
 		summaries = append(summaries, OutcomeSummary{
-			ID:          outcome.ID,
-			Name:        outcome.Name,
-			Description: outcome.Description,
-			Type:        outcome.Type,
-			ReadOnly:    outcome.ReadOnly,
+			ID:          Outcome.ID,
+			Name:        Outcome.Name,
+			Description: Outcome.Description,
+			Type:        Outcome.Type,
+			ReadOnly:    Outcome.ReadOnly,
 		})
 	}
 	return summaries
 }
 
-// GetOutcome returns the full details of a specific outcome
+// GetOutcome returns the full details of a specific Outcome
 func (r *OutcomeRegistry) GetOutcome(id string) (*Outcome, error) {
-	outcome, exists := r.outcomes[id]
+	Outcome, exists := r.Outcomes[id]
 	if !exists {
-		return nil, fmt.Errorf("outcome with ID '%s' not found", id)
+		return nil, fmt.Errorf("Outcome with ID '%s' not found", id)
 	}
-	return outcome, nil
+	return Outcome, nil
 }
 
-// ExecuteOutcome executes a specific outcome with provided parameters
-func (r *OutcomeRegistry) ExecuteOutcome(ctx context.Context, id string, parameters map[string]interface{}, deps *tools.ToolDependencies) (*mcp.CallToolResult, error) {
-	outcome, err := r.GetOutcome(id)
+// ExecuteOutcome executes a specific Outcome with provided parameters
+func (r *OutcomeRegistry) ExecuteOutcome(ctx context.Context, id string, parameters map[string]interface{}, deps *Outcomes.OutcomeDependencies) (*mcp.CallToolResult, error) {
+	Outcome, err := r.GetOutcome(id)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 
 	// Check if this is a write operation and we're in read-only mode
-	if !outcome.ReadOnly && deps.Config != nil && deps.Config.ReadOnly {
+	if !Outcome.ReadOnly && deps.Config != nil && deps.Config.ReadOnly {
 		return mcp.NewToolResultError(fmt.Sprintf(
-			"Cannot execute '%s' outcome: server is in read-only mode. Write operations are disabled. Set READ_ONLY=false to enable write operations.",
+			"Cannot execute '%s' Outcome: server is in read-only mode. Write operations are disabled. Set READ_ONLY=false to enable write operations.",
 			id,
 		)), nil
 	}
 
-	// Execute the handler associated with this outcome
-	if outcome.Handler == nil {
-		return mcp.NewToolResultError(fmt.Sprintf("no handler registered for outcome: %s", id)), nil
+	// Execute the handler associated with this Outcome
+	if Outcome.Handler == nil {
+		return mcp.NewToolResultError(fmt.Sprintf("no handler registered for Outcome: %s", id)), nil
 	}
 
-	return outcome.Handler(ctx, parameters, deps)
+	return Outcome.Handler(ctx, parameters, deps)
 }
 
-// registerListInstancesOutcome registers the list-instances outcome
+// registerListInstancesOutcome registers the list-instances Outcome
 func (r *OutcomeRegistry) registerListInstancesOutcome() {
-	r.outcomes["list-instances"] = &Outcome{
+	r.Outcomes["list-instances"] = &Outcome{
 		ID:          "list-instances",
 		Name:        "List Instances",
 		Description: "Retrieve a list of all Neo4j Aura database instances. Returns instance details including name, ID, status, cloud provider, memory size, type, and connection URL.",
@@ -93,8 +94,8 @@ func (r *OutcomeRegistry) registerListInstancesOutcome() {
 	}
 }
 
-// executeListInstances implements the list-instances outcome
-func executeListInstances(ctx context.Context, parameters map[string]interface{}, deps *tools.ToolDependencies) (*mcp.CallToolResult, error) {
+// executeListInstances implements the list-instances Outcome
+func executeListInstances(ctx context.Context, parameters map[string]interface{}, deps *Outcomes.OutcomeDependencies) (*mcp.CallToolResult, error) {
 	type instanceDetail struct {
 		Id            string `json:"id"`
 		Name          string `json:"name"`
@@ -151,9 +152,9 @@ func executeListInstances(ctx context.Context, parameters map[string]interface{}
 	return mcp.NewToolResultText(string(jsonData)), nil
 }
 
-// registerDeleteInstanceOutcome registers the delete-instance outcome
+// registerDeleteInstanceOutcome registers the delete-instance Outcome
 func (r *OutcomeRegistry) registerDeleteInstanceOutcome() {
-	r.outcomes["delete-instance"] = &Outcome{
+	r.Outcomes["delete-instance"] = &Outcome{
 		ID:          "delete-instance",
 		Name:        "Delete Instance",
 		Description: "Permanently delete a Neo4j Aura database instance. This is a destructive operation that cannot be undone. Requires explicit confirmation via the 'confirm' parameter.",
@@ -182,8 +183,8 @@ func (r *OutcomeRegistry) registerDeleteInstanceOutcome() {
 	}
 }
 
-// executeDeleteInstance implements the delete-instance outcome
-func executeDeleteInstance(ctx context.Context, parameters map[string]interface{}, deps *tools.ToolDependencies) (*mcp.CallToolResult, error) {
+// executeDeleteInstance implements the delete-instance Outcome
+func executeDeleteInstance(ctx context.Context, parameters map[string]interface{}, deps *Outcomes.OutcomeDependencies) (*mcp.CallToolResult, error) {
 	if deps.AClient == nil {
 		return mcp.NewToolResultError("Aura API Client is not initialized"), nil
 	}
@@ -241,9 +242,9 @@ func executeDeleteInstance(ctx context.Context, parameters map[string]interface{
 	return mcp.NewToolResultText(string(jsonData)), nil
 }
 
-// registerCreateInstanceOutcome registers the create-instance outcome
+// registerCreateInstanceOutcome registers the create-instance Outcome
 func (r *OutcomeRegistry) registerCreateInstanceOutcome() {
-	r.outcomes["create-instance"] = &Outcome{
+	r.Outcomes["create-instance"] = &Outcome{
 		ID:          "create-instance",
 		Name:        "Create Instance",
 		Description: "Create a new Neo4j Aura database instance with specified configuration. Returns the created instance details including ID, name, and connection information.",
@@ -294,8 +295,8 @@ func (r *OutcomeRegistry) registerCreateInstanceOutcome() {
 	}
 }
 
-// executeCreateInstance implements the create-instance outcome
-func executeCreateInstance(ctx context.Context, parameters map[string]interface{}, deps *tools.ToolDependencies) (*mcp.CallToolResult, error) {
+// executeCreateInstance implements the create-instance Outcome
+func executeCreateInstance(ctx context.Context, parameters map[string]interface{}, deps *Outcomes.OutcomeDependencies) (*mcp.CallToolResult, error) {
 	// These are supported parameters for creating an instance
 	/*
 		var supportedMemory = []string{

@@ -2,33 +2,33 @@
 
 ## Overview
 
-This session implemented a three-tool outcome pattern for the Neo4j Aura MCP server with three outcomes (list, create, delete) and then refactored to use a cleaner handler function pattern.
+This session implemented a three-tool Tool pattern for the Neo4j Aura MCP server with three Tools (list, create, delete) and then refactored to use a cleaner handler function pattern.
 
 ---
 
 ## 🎯 What Was Built
 
-### Phase 1: Outcome Pattern Implementation
-1. **Three MCP Tools**: list-outcomes, get-outcome-details, execute-outcome
-2. **Three Outcomes**: list-instances, create-instance, delete-instance
+### Phase 1: Tool Pattern Implementation
+1. **Three MCP Tools**: list-Tools, get-Tool-details, execute-Tool
+2. **Three Tools**: list-instances, create-instance, delete-instance
 3. **Safety Features**: Read-only mode protection, confirmation requirements
 4. **Comprehensive Documentation**: 12+ documentation files
 
 ### Phase 2: Handler Function Refactoring ✨
 1. **Eliminated Switch Statement**: Replaced with handler function pattern
-2. **Improved Extensibility**: Add outcomes without modifying ExecuteOutcome
-3. **Type Safety**: Consistent OutcomeHandler signature
-4. **Cleaner Architecture**: Self-contained outcomes
+2. **Improved Extensibility**: Add Tools without modifying ExecuteTool
+3. **Type Safety**: Consistent ToolHandler signature
+4. **Cleaner Architecture**: Self-contained Tools
 
 ---
 
 ## 📁 All Files
 
 ### Core Implementation (4 files)
-1. **outcome_types.go** - Data structures + `OutcomeHandler` type
-2. **outcome_registry.go** - Registry with handler-based execution
-3. **outcome_specs.go** - MCP tool specifications
-4. **outcome_handlers.go** - Request handlers
+1. **Tool_types.go** - Data structures + `ToolHandler` type
+2. **Tool_registry.go** - Registry with handler-based execution
+3. **Tool_specs.go** - MCP tool specifications
+4. **Tool_handlers.go** - Request handlers
 
 ### Modified Files (4 files)
 5. **types.go** - Added Config to ToolDependencies
@@ -44,7 +44,7 @@ This session implemented a three-tool outcome pattern for the Neo4j Aura MCP ser
 13. **CREATE_INSTANCE_SUMMARY.md** - Create summary
 14. **DELETE_INSTANCE_GUIDE.md** - Delete comprehensive guide
 15. **DELETE_INSTANCE_SUMMARY.md** - Delete summary
-16. **OUTCOME_PATTERN_SUMMARY.md** - Quick start
+16. **Tool_PATTERN_SUMMARY.md** - Quick start
 17. **COMPLETE_IMPLEMENTATION.md** - Complete implementation summary
 18. **CHANGES_SUMMARY.md** - All changes
 19. **HANDLER_REFACTORING.md** - Detailed refactoring explanation
@@ -56,37 +56,37 @@ This session implemented a three-tool outcome pattern for the Neo4j Aura MCP ser
 
 ### Before Refactor (Switch Statement)
 ```
-execute-outcome
+execute-Tool
   ↓
-ExecuteOutcome()
+ExecuteTool()
   ↓
-switch (outcome_id) {
+switch (Tool_id) {
   case "list-instances" → executeListInstances()
   case "create-instance" → executeCreateInstance()
   case "delete-instance" → executeDeleteInstance()
-  // Need to add case for each new outcome ❌
+  // Need to add case for each new Tool ❌
 }
 ```
 
 **Problems:**
-- Switch statement grows with each outcome
-- Tight coupling between ExecuteOutcome and handlers
-- Must modify ExecuteOutcome for every new outcome
+- Switch statement grows with each Tool
+- Tight coupling between ExecuteTool and handlers
+- Must modify ExecuteTool for every new Tool
 
 ### After Refactor (Handler Functions)
 ```
-execute-outcome
+execute-Tool
   ↓
-ExecuteOutcome()
+ExecuteTool()
   ↓
-outcome.Handler(ctx, parameters, deps) ✅
+Tool.Handler(ctx, parameters, deps) ✅
 ```
 
 **Benefits:**
 - No switch statement needed
-- Loose coupling - ExecuteOutcome is generic
-- Add outcomes without touching ExecuteOutcome
-- Type-safe with OutcomeHandler signature
+- Loose coupling - ExecuteTool is generic
+- Add Tools without touching ExecuteTool
+- Type-safe with ToolHandler signature
 
 ---
 
@@ -94,8 +94,8 @@ outcome.Handler(ctx, parameters, deps) ✅
 
 | Aspect | Before Refactor | After Refactor |
 |--------|----------------|----------------|
-| Adding outcome | 4 steps | 3 steps |
-| ExecuteOutcome | Needs update | No changes |
+| Adding Tool | 4 steps | 3 steps |
+| ExecuteTool | Needs update | No changes |
 | Switch statement | Growing | None |
 | Handler signatures | Inconsistent | Consistent |
 | Type safety | Partial | Full |
@@ -109,7 +109,7 @@ outcome.Handler(ctx, parameters, deps) ✅
 1. **Confirmation Required**: Must set `confirm: true`
 2. **Read-Only Protection**: Blocked when READ_ONLY=true
 3. **Pre-Deletion Verification**: Checks instance exists
-4. **Multiple Layers**: Config + Outcome + Parameter + API
+4. **Multiple Layers**: Config + Tool + Parameter + API
 
 ### create-instance
 1. **Read-Only Protection**: Blocked when READ_ONLY=true
@@ -121,36 +121,36 @@ outcome.Handler(ctx, parameters, deps) ✅
 
 ## 💡 How It Works Now
 
-### Adding a New Outcome (3 steps)
+### Adding a New Tool (3 steps)
 
 ```go
-// 1. Register outcome WITH handler
-func (r *OutcomeRegistry) registerNewOutcome() {
-    r.outcomes["new-outcome"] = &Outcome{
-        ID:          "new-outcome",
-        Name:        "New Outcome",
+// 1. Register Tool WITH handler
+func (r *ToolRegistry) registerNewTool() {
+    r.Tools["new-Tool"] = &Tool{
+        ID:          "new-Tool",
+        Name:        "New Tool",
         Description: "...",
-        Type:        OutcomeTypeUpdate,
+        Type:        ToolTypeUpdate,
         ReadOnly:    false,
-        Parameters:  []OutcomeParameter{...},
-        Handler:     executeNewOutcome,  // ✅ Reference handler
+        Parameters:  []ToolParameter{...},
+        Handler:     executeNewTool,  // ✅ Reference handler
     }
 }
 
 // 2. Call registration
-func NewOutcomeRegistry() *OutcomeRegistry {
+func NewToolRegistry() *ToolRegistry {
     // ...
-    registry.registerNewOutcome()
+    registry.registerNewTool()
     return registry
 }
 
-// 3. Implement handler (must match OutcomeHandler signature)
-func executeNewOutcome(ctx context.Context, parameters map[string]interface{}, deps *tools.ToolDependencies) (*mcp.CallToolResult, error) {
+// 3. Implement handler (must match ToolHandler signature)
+func executeNewTool(ctx context.Context, parameters map[string]interface{}, deps *tools.ToolDependencies) (*mcp.CallToolResult, error) {
     // Your implementation
     return mcp.NewToolResultText("Success!"), nil
 }
 
-// That's it! ExecuteOutcome automatically calls your handler ✨
+// That's it! ExecuteTool automatically calls your handler ✨
 ```
 
 ---
@@ -161,8 +161,8 @@ func executeNewOutcome(ctx context.Context, parameters map[string]interface{}, d
 - [ ] `go build -o bin/mcp-aura-api ./cmd/mcp-aura-api` succeeds
 
 ### Functionality
-- [ ] list-outcomes returns 3 outcomes
-- [ ] get-outcome-details works for all outcomes
+- [ ] list-Tools returns 3 Tools
+- [ ] get-Tool-details works for all Tools
 - [ ] execute list-instances works (always)
 - [ ] execute create-instance blocked in READ_ONLY mode
 - [ ] execute delete-instance blocked in READ_ONLY mode
@@ -171,10 +171,10 @@ func executeNewOutcome(ctx context.Context, parameters map[string]interface{}, d
 - [ ] execute delete-instance works with confirm=true and READ_ONLY=false
 
 ### Refactoring Verification
-- [ ] No switch statement in ExecuteOutcome
-- [ ] All outcomes have Handler field set
-- [ ] All handlers match OutcomeHandler signature
-- [ ] Adding new outcome doesn't require modifying ExecuteOutcome
+- [ ] No switch statement in ExecuteTool
+- [ ] All Tools have Handler field set
+- [ ] All handlers match ToolHandler signature
+- [ ] Adding new Tool doesn't require modifying ExecuteTool
 
 ---
 
@@ -200,9 +200,9 @@ export CLIENT_SECRET="your-secret"
 
 | Topic | Document |
 |-------|----------|
-| **Pattern Overview** | internal/tools/outcomes/README.md |
-| **Architecture** | internal/tools/outcomes/ARCHITECTURE.md |
-| **Quick Start** | OUTCOME_PATTERN_SUMMARY.md |
+| **Pattern Overview** | internal/tools/Tools/README.md |
+| **Architecture** | internal/tools/Tools/ARCHITECTURE.md |
+| **Quick Start** | Tool_PATTERN_SUMMARY.md |
 | **Refactoring Details** | HANDLER_REFACTORING.md |
 | **Refactoring Summary** | REFACTORING_SUMMARY.md |
 | **create-instance** | CREATE_INSTANCE_SUMMARY.md |
@@ -232,7 +232,7 @@ err = deps.AClient.Instances.Delete(instanceID)
 ## ✅ Success Criteria
 
 ✅ Three-tool pattern implemented
-✅ Three outcomes implemented (list, create, delete)
+✅ Three Tools implemented (list, create, delete)
 ✅ Read-only mode protection working
 ✅ Confirmation requirement for deletions
 ✅ **Handler function pattern implemented**
@@ -259,7 +259,7 @@ err = deps.AClient.Instances.Delete(instanceID)
    - Default (READ_ONLY=true)
    - Write enabled (READ_ONLY=false)
 
-4. **Add More Outcomes** (examples)
+4. **Add More Tools** (examples)
    - pause-instance
    - resume-instance
    - get-instance-details
@@ -268,8 +268,8 @@ err = deps.AClient.Instances.Delete(instanceID)
 **Example: Adding pause-instance**
 ```go
 // Just 3 steps - no switch statement to update!
-func (r *OutcomeRegistry) registerPauseInstanceOutcome() {
-    r.outcomes["pause-instance"] = &Outcome{
+func (r *ToolRegistry) registerPauseInstanceTool() {
+    r.Tools["pause-instance"] = &Tool{
         ID:       "pause-instance",
         Handler:  executePauseInstance,  // ✅
         // ... other fields
@@ -281,7 +281,7 @@ func (r *OutcomeRegistry) registerPauseInstanceOutcome() {
 
 ## 🎉 Summary
 
-Successfully built a **production-ready, type-safe, extensible outcome pattern** with:
+Successfully built a **production-ready, type-safe, extensible Tool pattern** with:
 
 - ✨ Clean handler function architecture
 - 🔒 Comprehensive safety features
@@ -289,6 +289,6 @@ Successfully built a **production-ready, type-safe, extensible outcome pattern**
 - 🧪 Ready for testing
 - 🚀 Easy to extend
 
-**Total**: 3 MCP tools, 3 outcomes, 20 documentation files, clean architecture with handler functions!
+**Total**: 3 MCP tools, 3 Tools, 20 documentation files, clean architecture with handler functions!
 
 **Status**: Ready for testing and deployment! 🎯

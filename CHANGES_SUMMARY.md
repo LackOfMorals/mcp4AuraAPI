@@ -2,50 +2,50 @@
 
 ## What Was Accomplished
 
-This session implemented a three-tool outcome pattern for your Neo4j Aura MCP server and added the `create-instance` outcome as the first example of a write operation.
+This session implemented a three-tool Tool pattern for your Neo4j Aura MCP server and added the `create-instance` Tool as the first example of a write operation.
 
 ---
 
 ## 📁 Files Created (11 new files)
 
 ### Core Implementation
-1. **`internal/tools/outcomes/outcome_types.go`**
-   - Defines: `Outcome`, `OutcomeSummary`, `OutcomeParameter`, `OutcomeType`
+1. **`internal/tools/Tools/Tool_types.go`**
+   - Defines: `Tool`, `ToolSummary`, `ToolParameter`, `ToolType`
    - 67 lines
 
-2. **`internal/tools/outcomes/outcome_registry.go`**
-   - Central registry managing all outcomes
+2. **`internal/tools/Tools/Tool_registry.go`**
+   - Central registry managing all Tools
    - Includes `list-instances` and `create-instance` implementations
    - 311 lines
 
-3. **`internal/tools/outcomes/outcome_specs.go`**
-   - MCP tool specifications for 3 tools: list-outcomes, get-outcome-details, execute-outcome
+3. **`internal/tools/Tools/Tool_specs.go`**
+   - MCP tool specifications for 3 tools: list-Tools, get-Tool-details, execute-Tool
    - 62 lines
 
-4. **`internal/tools/outcomes/outcome_handlers.go`**
+4. **`internal/tools/Tools/Tool_handlers.go`**
    - Request handlers connecting MCP to the registry
    - 72 lines
 
 ### Documentation
-5. **`internal/tools/outcomes/README.md`**
+5. **`internal/tools/Tools/README.md`**
    - Complete pattern documentation and usage guide
-   - How to add new outcomes
+   - How to add new Tools
 
-6. **`internal/tools/outcomes/ARCHITECTURE.md`**
+6. **`internal/tools/Tools/ARCHITECTURE.md`**
    - Visual flow diagrams
    - Component relationships
 
-7. **`internal/tools/outcomes/CREATE_INSTANCE_NOTES.md`**
+7. **`internal/tools/Tools/CREATE_INSTANCE_NOTES.md`**
    - Implementation details for create-instance
    - API call verification guidance
 
-8. **`internal/tools/outcomes/CREATE_INSTANCE_EXAMPLES.md`**
+8. **`internal/tools/Tools/CREATE_INSTANCE_EXAMPLES.md`**
    - Complete usage examples
    - Error handling scenarios
    - Common configurations
 
 ### Summary Documents
-9. **`OUTCOME_PATTERN_SUMMARY.md`** (project root)
+9. **`Tool_PATTERN_SUMMARY.md`** (project root)
    - High-level overview of the pattern
    - Quick start guide
 
@@ -61,7 +61,7 @@ This session implemented a three-tool outcome pattern for your Neo4j Aura MCP se
 ## 📝 Files Modified (1 file)
 
 1. **`internal/server/tools_register.go`**
-   - Added 3 new tool registrations (list-outcomes, get-outcome-details, execute-outcome)
+   - Added 3 new tool registrations (list-Tools, get-Tool-details, execute-Tool)
    - Kept legacy list-instances tool for backwards compatibility
    - Changed: +27 lines
 
@@ -71,20 +71,20 @@ This session implemented a three-tool outcome pattern for your Neo4j Aura MCP se
 
 Your server now exposes these tools:
 
-### Outcome Pattern Tools (New)
-1. **`list-outcomes`** (read-only)
+### Tool Pattern Tools (New)
+1. **`list-Tools`** (read-only)
    - Lists all available operations
-   - Returns: Array of outcome summaries
+   - Returns: Array of Tool summaries
 
-2. **`get-outcome-details`** (read-only)
-   - Gets detailed info for a specific outcome
-   - Input: `outcome_id`
-   - Returns: Full outcome with parameters
+2. **`get-Tool-details`** (read-only)
+   - Gets detailed info for a specific Tool
+   - Input: `Tool_id`
+   - Returns: Full Tool with parameters
 
-3. **`execute-outcome`** (read/write)
-   - Executes a specific outcome
-   - Input: `outcome_id`, `parameters`
-   - Returns: Outcome-specific results
+3. **`execute-Tool`** (read/write)
+   - Executes a specific Tool
+   - Input: `Tool_id`, `parameters`
+   - Returns: Tool-specific results
 
 ### Legacy Tools (Kept)
 4. **`list-instances`** (read-only)
@@ -93,7 +93,7 @@ Your server now exposes these tools:
 
 ---
 
-## 🎯 Outcomes Implemented
+## 🎯 Tools Implemented
 
 ### 1. list-instances
 - **Type**: List
@@ -133,7 +133,7 @@ Your server now exposes these tools:
 | Modified Files | 4 |
 | Total Lines Added | ~690 |
 | New MCP Tools | 3 |
-| New Outcomes | 3 (list-instances, create-instance, delete-instance) |
+| New Tools | 3 (list-instances, create-instance, delete-instance) |
 | Documentation Pages | 8 |
 
 ---
@@ -148,10 +148,10 @@ User → Claude → [list-instances tool] → Aura API
 
 ### After
 ```
-User → Claude → [list-outcomes] → Registry → [list-instances outcome]
-              → [get-outcome-details]       → [create-instance outcome]
-              → [execute-outcome]           → [... more outcomes ...]
-                [Three generic tools]          [Extensible outcomes]
+User → Claude → [list-Tools] → Registry → [list-instances Tool]
+              → [get-Tool-details]       → [create-instance Tool]
+              → [execute-Tool]           → [... more Tools ...]
+                [Three generic tools]          [Extensible Tools]
 ```
 
 ---
@@ -159,10 +159,10 @@ User → Claude → [list-outcomes] → Registry → [list-instances outcome]
 ## 💡 Key Benefits
 
 1. **Token Efficiency**: Only fetch information when needed
-2. **Discoverability**: list-outcomes provides a catalog
-3. **Extensibility**: Add outcomes without changing tool interface
+2. **Discoverability**: list-Tools provides a catalog
+3. **Extensibility**: Add Tools without changing tool interface
 4. **Validation**: Parameters clearly defined and validated
-5. **Maintainability**: All outcomes in one registry
+5. **Maintainability**: All Tools in one registry
 6. **Backwards Compatible**: Legacy tools still work
 
 ---
@@ -194,12 +194,12 @@ npx @modelcontextprotocol/inspector ./bin/mcp-aura-api
 
 | Question | Read This |
 |----------|-----------|
-| How does the pattern work? | `internal/tools/outcomes/README.md` |
-| Visual architecture? | `internal/tools/outcomes/ARCHITECTURE.md` |
-| How to add outcomes? | `internal/tools/outcomes/README.md` |
+| How does the pattern work? | `internal/tools/Tools/README.md` |
+| Visual architecture? | `internal/tools/Tools/ARCHITECTURE.md` |
+| How to add Tools? | `internal/tools/Tools/README.md` |
 | create-instance details? | `CREATE_INSTANCE_NOTES.md` |
 | Usage examples? | `CREATE_INSTANCE_EXAMPLES.md` |
-| Quick overview? | `OUTCOME_PATTERN_SUMMARY.md` |
+| Quick overview? | `Tool_PATTERN_SUMMARY.md` |
 
 ---
 
@@ -208,7 +208,7 @@ npx @modelcontextprotocol/inspector ./bin/mcp-aura-api
 1. **Verify API Call**: Check aura-client library for correct Create method
 2. **Build**: `go build -o bin/mcp-aura-api ./cmd/mcp-aura-api`
 3. **Test**: Try all 3 new tools with MCP Inspector
-4. **Add More Outcomes**: Consider get-instance-details, delete-instance, etc.
+4. **Add More Tools**: Consider get-instance-details, delete-instance, etc.
 5. **Deploy**: Once tested, deploy to production
 6. **Migrate Users**: Move users from legacy to new pattern
 7. **Remove Legacy**: Eventually remove list-instances tool
@@ -218,7 +218,7 @@ npx @modelcontextprotocol/inspector ./bin/mcp-aura-api
 ## 🎉 Success Criteria
 
 ✅ Three-tool pattern implemented
-✅ create-instance outcome added with validation
+✅ create-instance Tool added with validation
 ✅ Comprehensive documentation created
 ✅ Backwards compatibility maintained
 ✅ Example usage documented
@@ -230,10 +230,10 @@ npx @modelcontextprotocol/inspector ./bin/mcp-aura-api
 ## 📞 Support
 
 For questions about:
-- **Pattern implementation**: See `internal/tools/outcomes/README.md`
+- **Pattern implementation**: See `internal/tools/Tools/README.md`
 - **create-instance**: See `CREATE_INSTANCE_NOTES.md`
 - **Usage examples**: See `CREATE_INSTANCE_EXAMPLES.md`
-- **Architecture**: See `internal/tools/outcomes/ARCHITECTURE.md`
+- **Architecture**: See `internal/tools/Tools/ARCHITECTURE.md`
 
 ---
 

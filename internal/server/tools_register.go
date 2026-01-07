@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools"
-	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools/outcomes"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools/Tools"
 	"github.com/mark3labs/mcp-go/server"
 )
 
@@ -71,30 +71,30 @@ func filterWriteTools(tools []ToolDefinition) []ToolDefinition {
 func (s *Neo4jMCPServer) getAllToolsDefs(deps *tools.ToolDependencies) []ToolDefinition {
 
 	return []ToolDefinition{
-		// Outcome-based tools - the new pattern
+		// Tool-based tools - the new pattern
 		{
 			category: instancesCategory,
 			definition: server.ServerTool{
-				Tool:    outcomes.ListOutcomesSpec(),
-				Handler: outcomes.ListOutcomesHandler(deps),
+				Tool:    Tools.ListToolsSpec(),
+				Handler: Tools.ListToolsHandler(deps),
 			},
 			readonly: true,
 		},
 		{
 			category: instancesCategory,
 			definition: server.ServerTool{
-				Tool:    outcomes.GetOutcomeDetailsSpec(),
-				Handler: outcomes.GetOutcomeDetailsHandler(deps),
+				Tool:    Tools.GetToolDetailsSpec(),
+				Handler: Tools.GetToolDetailsHandler(deps),
 			},
 			readonly: true,
 		},
 		{
 			category: instancesCategory,
 			definition: server.ServerTool{
-				Tool:    outcomes.ExecuteOutcomeSpec(),
-				Handler: outcomes.ExecuteOutcomeHandler(deps),
+				Tool:    Tools.ExecuteToolSpec(),
+				Handler: Tools.ExecuteToolHandler(deps),
 			},
-			readonly: true, // Tool itself is read-only; outcome-level checks prevent write operations
+			readonly: true, // Tool itself is read-only; Tool-level checks prevent write operations
 		},
 
 		// Add other categories below...

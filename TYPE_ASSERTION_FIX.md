@@ -6,7 +6,7 @@ The compiler error occurred because `request.Params.Arguments` is of type `any` 
 
 ```go
 // ERROR: Cannot index request.Params.Arguments (type any)
-outcomeID, ok := request.Params.Arguments["outcome_id"].(string)
+ToolID, ok := request.Params.Arguments["Tool_id"].(string)
 ```
 
 ## Solution
@@ -20,17 +20,17 @@ if !ok {
     return mcp.NewToolResultError("invalid arguments format"), nil
 }
 
-outcomeID, ok := arguments["outcome_id"].(string)
-if !ok || outcomeID == "" {
-    return mcp.NewToolResultError("outcome_id parameter is required and must be a string"), nil
+ToolID, ok := arguments["Tool_id"].(string)
+if !ok || ToolID == "" {
+    return mcp.NewToolResultError("Tool_id parameter is required and must be a string"), nil
 }
 ```
 
 ## Files Fixed
 
-### internal/tools/outcomes/outcome_handlers.go
+### internal/tools/Tools/Tool_handlers.go
 
-**GetOutcomeDetailsHandler** - Added type assertion:
+**GetToolDetailsHandler** - Added type assertion:
 ```go
 arguments, ok := request.Params.Arguments.(map[string]interface{})
 if !ok {
@@ -38,7 +38,7 @@ if !ok {
 }
 ```
 
-**ExecuteOutcomeHandler** - Added type assertion:
+**ExecuteToolHandler** - Added type assertion:
 ```go
 arguments, ok := request.Params.Arguments.(map[string]interface{})
 if !ok {
@@ -46,7 +46,7 @@ if !ok {
 }
 ```
 
-**ListOutcomesHandler** - No changes needed (doesn't access Arguments)
+**ListToolsHandler** - No changes needed (doesn't access Arguments)
 
 ## Why This Happened
 

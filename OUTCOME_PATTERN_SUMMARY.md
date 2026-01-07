@@ -1,13 +1,13 @@
-# MCP Outcome Pattern - Implementation Summary
+# MCP Tool Pattern - Implementation Summary
 
 ## What Was Created
 
 ### New Files
 
-1. **outcome_types.go** - Core data structures for outcomes
-2. **outcome_registry.go** - Central registry managing all outcomes
-3. **outcome_specs.go** - MCP tool specifications for the three tools
-4. **outcome_handlers.go** - Request handlers for the MCP tools
+1. **Tool_types.go** - Core data structures for Tools
+2. **Tool_registry.go** - Central registry managing all Tools
+3. **Tool_specs.go** - MCP tool specifications for the three tools
+4. **Tool_handlers.go** - Request handlers for the MCP tools
 5. **README.md** - Complete documentation and usage guide
 
 ### Modified Files
@@ -18,9 +18,9 @@
 
 The server now exposes these tools:
 
-1. **list-outcomes** - Lists all available operations (read-only)
-2. **get-outcome-details** - Gets details for a specific outcome (read-only)
-3. **execute-outcome** - Executes an outcome (may be read-only depending on the outcome)
+1. **list-Tools** - Lists all available operations (read-only)
+2. **get-Tool-details** - Gets details for a specific Tool (read-only)
+3. **execute-Tool** - Executes an Tool (may be read-only depending on the Tool)
 4. **list-instances** - Legacy tool (kept for backwards compatibility)
 
 ## Quick Start
@@ -38,14 +38,14 @@ go build -o bin/mcp-aura-api ./cmd/mcp-aura-api
 Once the server is running, you can test the new pattern:
 
 ```bash
-# 1. List available outcomes
-echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list-outcomes","arguments":{}}}' | ./bin/mcp-aura-api
+# 1. List available Tools
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list-Tools","arguments":{}}}' | ./bin/mcp-aura-api
 
-# 2. Get details for a specific outcome
-echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-outcome-details","arguments":{"outcome_id":"list-instances"}}}' | ./bin/mcp-aura-api
+# 2. Get details for a specific Tool
+echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get-Tool-details","arguments":{"Tool_id":"list-instances"}}}' | ./bin/mcp-aura-api
 
-# 3. Execute the outcome
-echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"execute-outcome","arguments":{"outcome_id":"list-instances","parameters":{}}}}' | ./bin/mcp-aura-api
+# 3. Execute the Tool
+echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"execute-Tool","arguments":{"Tool_id":"list-instances","parameters":{}}}}' | ./bin/mcp-aura-api
 ```
 
 ## Architecture Benefits
@@ -55,20 +55,20 @@ echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"execute-ou
 - User must know exact tool name
 - Token-heavy for discovery
 
-### After (Outcome Pattern)
-- Three generic tools serving multiple outcomes
-- Self-documenting through list-outcomes
+### After (Tool Pattern)
+- Three generic tools serving multiple Tools
+- Self-documenting through list-Tools
 - Token-efficient (only fetch what you need)
 - Easy to extend (just add to registry)
 
-## Adding New Outcomes
+## Adding New Tools
 
-All new outcomes are added to `outcome_registry.go`:
+All new Tools are added to `Tool_registry.go`:
 
-1. Create a `register<Outcome>()` method
-2. Call it in `NewOutcomeRegistry()`
+1. Create a `register<Tool>()` method
+2. Call it in `NewToolRegistry()`
 3. Implement the execution logic
-4. Add a case in `ExecuteOutcome()`
+4. Add a case in `ExecuteTool()`
 
 No changes needed to tool specs or handlers!
 
@@ -81,33 +81,33 @@ No changes needed to tool specs or handlers!
 
 ### Phase 2: New Pattern Only (Future)
 - Remove legacy tool from `tools_register.go`
-- All clients use outcome pattern
+- All clients use Tool pattern
 - Simpler maintenance
 
-## Example: Adding "Get Instance Details" Outcome
+## Example: Adding "Get Instance Details" Tool
 
 ```go
-// 1. In NewOutcomeRegistry()
-func NewOutcomeRegistry() *OutcomeRegistry {
-    registry := &OutcomeRegistry{
-        outcomes: make(map[string]*Outcome),
+// 1. In NewToolRegistry()
+func NewToolRegistry() *ToolRegistry {
+    registry := &ToolRegistry{
+        Tools: make(map[string]*Tool),
     }
     
-    registry.registerListInstancesOutcome()
-    registry.registerGetInstanceDetailsOutcome() // NEW
+    registry.registerListInstancesTool()
+    registry.registerGetInstanceDetailsTool() // NEW
     
     return registry
 }
 
 // 2. Add the registration method
-func (r *OutcomeRegistry) registerGetInstanceDetailsOutcome() {
-    r.outcomes["get-instance-details"] = &Outcome{
+func (r *ToolRegistry) registerGetInstanceDetailsTool() {
+    r.Tools["get-instance-details"] = &Tool{
         ID:          "get-instance-details",
         Name:        "Get Instance Details",
         Description: "Get detailed information about a specific Neo4j Aura instance",
-        Type:        OutcomeTypeRead,
+        Type:        ToolTypeRead,
         ReadOnly:    true,
-        Parameters: []OutcomeParameter{
+        Parameters: []ToolParameter{
             {
                 Name:        "instance_id",
                 Type:        "string",
@@ -134,14 +134,14 @@ func executeGetInstanceDetails(ctx context.Context, parameters map[string]interf
     return mcp.NewToolResultText(string(jsonData)), nil
 }
 
-// 4. Add case in ExecuteOutcome()
+// 4. Add case in ExecuteTool()
 switch id {
 case "list-instances":
     return executeListInstances(ctx, deps)
 case "get-instance-details":
     return executeGetInstanceDetails(ctx, parameters, deps)
 default:
-    return mcp.NewToolResultError(fmt.Sprintf("execution not implemented for outcome: %s", id)), nil
+    return mcp.NewToolResultError(fmt.Sprintf("execution not implemented for Tool: %s", id)), nil
 }
 ```
 
@@ -160,17 +160,17 @@ Tokens: ~500-1000+ depending on instance count
 ### New Pattern
 ```
 User: "What can I do with Aura instances?"
-Claude: Calls list-outcomes
-Result: Just outcome summaries
+Claude: Calls list-Tools
+Result: Just Tool summaries
 Tokens: ~100-200
 
 User: "Tell me about list-instances"
-Claude: Calls get-outcome-details with id="list-instances"
-Result: Just that outcome's details
+Claude: Calls get-Tool-details with id="list-instances"
+Result: Just that Tool's details
 Tokens: ~50-100
 
 User: "List my instances"
-Claude: Calls execute-outcome with id="list-instances"
+Claude: Calls execute-Tool with id="list-instances"
 Result: Full instance data
 Tokens: ~500-1000+ as needed
 ```
@@ -179,9 +179,9 @@ Tokens: ~500-1000+ as needed
 
 ## Next Steps
 
-1. **Verify the Create API Call**: Check `internal/tools/outcomes/CREATE_INSTANCE_NOTES.md` for details on the API call that may need adjustment
-2. Test the three new tools and the create-instance outcome
-3. Consider adding more outcomes:
+1. **Verify the Create API Call**: Check `internal/tools/Tools/CREATE_INSTANCE_NOTES.md` for details on the API call that may need adjustment
+2. Test the three new tools and the create-instance Tool
+3. Consider adding more Tools:
    - get-instance-details
    - delete-instance
    - pause-instance
@@ -192,9 +192,9 @@ Tokens: ~500-1000+ as needed
 
 ## Recently Added
 
-### create-instance Outcome ✨
+### create-instance Tool ✨
 
-Added a new outcome for creating Neo4j Aura instances with the following parameters:
+Added a new Tool for creating Neo4j Aura instances with the following parameters:
 - **name**: Instance name (required)
 - **cloud_provider**: 'gcp', 'aws', or 'azure' (required)
 - **region**: Cloud region (required)
