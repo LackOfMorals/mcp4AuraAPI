@@ -7,6 +7,9 @@ import (
 
 	"github.com/LackOfMorals/aura-client"
 	"github.com/LackOfMorals/mcp4AuraAPI/internal/config"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/dependencies"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/outcomes"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools"
 	"github.com/mark3labs/mcp-go/server"
 )
 
@@ -15,6 +18,7 @@ type Neo4jMCPServer struct {
 	MCPServer *server.MCPServer
 	config    *config.Config
 	aClient   *aura.AuraAPIClient
+	aOutcomes *outcomes.OutcomeRegistry
 	version   string
 }
 
@@ -34,11 +38,15 @@ func NewNeo4jMCPServer(version string, cfg *config.Config) *Neo4jMCPServer {
 		aura.WithTimeout(120*time.Second),
 	)
 
+	// Register outcomes
+	auraOutcomes := outcomes.NewOutcomeRegistry()
+
 	return &Neo4jMCPServer{
 		MCPServer: mcpServer,
 		config:    cfg,
 		version:   version,
 		aClient:   auraClient,
+		aOutcomes: auraOutcomes,
 	}
 }
 
@@ -50,8 +58,15 @@ func (s *Neo4jMCPServer) Start() error {
 		return err
 	}
 
+	// Dependencies needed by all outcomes
+	outcomeDependencies := dependencies.Dependencies{
+		AClient:  s.aClient,
+		OutComes: s.aOutcomes,
+		Config:   s.config,
+	}
+
 	// Register tools
-	if err := s.registerTools(); err != nil {
+	if err := s.registerTools(outcomeDependencies); err != nil {
 		return fmt.Errorf("failed to register tools: %w", err)
 	}
 	slog.Info("Started MCP Aura API Server. Now listening for input...")
@@ -63,6 +78,30 @@ func (s *Neo4jMCPServer) Start() error {
 func (s *Neo4jMCPServer) verifyRequirements() error {
 
 	return nil
+}
+
+// registerTools registers all enabled MCP tools and adds them to the  MCP server.
+func (s *Neo4jMCPServer) registerTools(deps *dependencies.Dependencies) {
+	tools := GetAllTools(deps)
+	s.MCPServer.AddTools(tools...)
+}
+
+// GetAllTools returns all available tools with their specs and handlers
+func GetAllTools(deps *dependencies.Dependencies) []server.ServerTool {
+	return []server.ServerTool{
+		{
+			Tool:    tools.ListOutcomesSpec(),
+			Handler: tools.ListOutcomesHandler(deps),
+		},
+		{
+			Tool:    tools.GetOutcomeDetailsSpec(),
+			Handler: tools.GetOutcomeDetailsHandler(deps),
+		},
+		{
+			Tool:    tools.ExecuteOutcomeSpec(),
+			Handler: tools.ExecuteOutcomeHandler(deps),
+		},
+	}
 }
 
 // Stop gracefully stops the server
