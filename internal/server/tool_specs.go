@@ -9,7 +9,7 @@
 //
 // tools_spec.go holds the MCP Tool spec for the three-tool pattern
 
-package tools
+package server
 
 import (
 	"github.com/mark3labs/mcp-go/mcp"

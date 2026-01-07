@@ -1,4 +1,4 @@
-package outcomes
+package server
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/LackOfMorals/aura-client"
-	"github.com/LackOfMorals/mcp4AuraAPI/internal/dependencies"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -55,7 +54,7 @@ func (r *OutcomeRegistry) GetOutcome(id string) (*Outcome, error) {
 }
 
 // ExecuteOutcome executes a specific Outcome with provided parameters
-func (r *OutcomeRegistry) ExecuteOutcome(ctx context.Context, id string, parameters map[string]interface{}, deps *dependencies.Dependencies) (*mcp.CallToolResult, error) {
+func (r *OutcomeRegistry) ExecuteOutcome(ctx context.Context, id string, parameters map[string]interface{}, deps *Dependencies) (*mcp.CallToolResult, error) {
 	Outcome, err := r.GetOutcome(id)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
@@ -83,7 +82,7 @@ func (r *OutcomeRegistry) registerListInstancesOutcome() {
 		ID:          "list-instances",
 		Name:        "List Instances",
 		Description: "Retrieve a list of all Neo4j Aura database instances. Returns instance details including name, ID, status, cloud provider, memory size, type, and connection URL.",
-		Type:        OutcomeTypeList,
+		Type:        OutcomesTypeList,
 		ReadOnly:    true,
 		Parameters:  []OutcomeParameter{}, // No parameters needed for listing
 		Metadata: map[string]interface{}{
@@ -94,7 +93,7 @@ func (r *OutcomeRegistry) registerListInstancesOutcome() {
 }
 
 // executeListInstances implements the list-instances Outcome
-func executeListInstances(ctx context.Context, parameters map[string]interface{}, deps *dependencies.Dependencies) (*mcp.CallToolResult, error) {
+func executeListInstances(ctx context.Context, parameters map[string]interface{}, deps *Dependencies) (*mcp.CallToolResult, error) {
 	type instanceDetail struct {
 		Id            string `json:"id"`
 		Name          string `json:"name"`
@@ -157,7 +156,7 @@ func (r *OutcomeRegistry) registerDeleteInstanceOutcome() {
 		ID:          "delete-instance",
 		Name:        "Delete Instance",
 		Description: "Permanently delete a Neo4j Aura database instance. This is a destructive operation that cannot be undone. Requires explicit confirmation via the 'confirm' parameter.",
-		Type:        OutcomeTypeDelete,
+		Type:        OutcomesTypeDelete,
 		ReadOnly:    false,
 		Parameters: []OutcomeParameter{
 			{
@@ -183,7 +182,7 @@ func (r *OutcomeRegistry) registerDeleteInstanceOutcome() {
 }
 
 // executeDeleteInstance implements the delete-instance Outcome
-func executeDeleteInstance(ctx context.Context, parameters map[string]interface{}, deps *dependencies.Dependencies) (*mcp.CallToolResult, error) {
+func executeDeleteInstance(ctx context.Context, parameters map[string]interface{}, deps *Dependencies) (*mcp.CallToolResult, error) {
 	if deps.AClient == nil {
 		return mcp.NewToolResultError("Aura API Client is not initialized"), nil
 	}
@@ -247,7 +246,7 @@ func (r *OutcomeRegistry) registerCreateInstanceOutcome() {
 		ID:          "create-instance",
 		Name:        "Create Instance",
 		Description: "Create a new Neo4j Aura database instance with specified configuration. Returns the created instance details including ID, name, and connection information.",
-		Type:        OutcomeTypeCreate,
+		Type:        OutcomesTypeCreate,
 		ReadOnly:    false,
 		Parameters: []OutcomeParameter{
 			{
@@ -295,7 +294,7 @@ func (r *OutcomeRegistry) registerCreateInstanceOutcome() {
 }
 
 // executeCreateInstance implements the create-instance Outcome
-func executeCreateInstance(ctx context.Context, parameters map[string]interface{}, deps *dependencies.Dependencies) (*mcp.CallToolResult, error) {
+func executeCreateInstance(ctx context.Context, parameters map[string]interface{}, deps *Dependencies) (*mcp.CallToolResult, error) {
 	// These are supported parameters for creating an instance
 	/*
 		var supportedMemory = []string{
