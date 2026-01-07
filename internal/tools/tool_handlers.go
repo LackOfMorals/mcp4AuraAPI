@@ -16,7 +16,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/LackOfMorals/mcp4AuraAPI/internal/outcomes"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/tools/outcomes"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
