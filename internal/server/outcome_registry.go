@@ -21,10 +21,10 @@ func NewOutcomeRegistry() *OutcomeRegistry {
 	}
 
 	// Register all available Outcomes
+	// Add more Outcomes here as they are developed
 	registry.registerListInstancesOutcome()
 	registry.registerCreateInstanceOutcome()
 	registry.registerDeleteInstanceOutcome()
-	// Add more Outcomes here as they are developed
 
 	return registry
 }
