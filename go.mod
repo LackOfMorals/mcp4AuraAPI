@@ -3,7 +3,7 @@ module github.com/LackOfMorals/mcp4AuraAPI
 go 1.25.3
 
 require (
-	github.com/LackOfMorals/aura-client v1.0.4
+	github.com/LackOfMorals/aura-client v1.2.0
 	github.com/mark3labs/mcp-go v0.43.2
 )
 
@@ -26,7 +26,7 @@ require (
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
-	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/sys v0.40.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
