@@ -3,7 +3,7 @@ module github.com/LackOfMorals/mcp4AuraAPI
 go 1.25.3
 
 require (
-	github.com/LackOfMorals/aura-client v1.2.0
+	github.com/LackOfMorals/aura-client v1.2.1
 	github.com/mark3labs/mcp-go v0.43.2
 )
 
