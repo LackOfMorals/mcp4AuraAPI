@@ -4,28 +4,40 @@
 
 The MCP server now includes Phase 1 Prometheus monitoring capabilities. Here's how to use them:
 
-## 1. Discover Available Outcomes
+## Recommended Workflow
+
+### Step 1: Get Instance Details (includes Prometheus URL)
+```
+execute-outcome
+  Outcome_id: "get-instance-details"
+  parameters: {
+    "instance_id": "abc123"
+  }
+```
+
+This returns all instance details **including the Prometheus URL**.
+
+### Step 2: Use Prometheus URL for Monitoring
+```
+execute-outcome
+  Outcome_id: "get-instance-health"
+  parameters: {
+    "instance_id": "abc123",
+    "prometheus_url": "https://abc123.metrics.neo4j.io/prometheus"
+  }
+```
+
+## Alternative: Discover Available Outcomes
 
 ```
 list-outcomes
 ```
 
-You'll see 7 outcomes including 4 new monitoring ones:
+You'll see 8 outcomes including 4 monitoring ones:
 - get-instance-health
 - diagnose-performance  
 - analyze-resource-usage
 - get-query-statistics
-
-## 2. Get Outcome Details
-
-```
-get-outcome-details
-  Outcome_id: "get-instance-health"
-```
-
-Shows required parameters:
-- `instance_id` - Your Aura instance ID
-- `prometheus_url` - The Prometheus endpoint URL
 
 ## 3. Execute Monitoring Outcomes
 

@@ -270,7 +270,22 @@ See [PROMETHEUS_INTEGRATION.md](PROMETHEUS_INTEGRATION.md) for detailed roadmap.
 | QUICKSTART_PROMETHEUS.md | Docs | 250 | ✅ |
 | README.md | Docs | +20 | ✅ |
 
-**Total:** ~2,150 lines of code + documentation
+**Total:** ~2,250 lines of code + documentation
+
+## Update: get-instance-details Added
+
+We added one more outcome (`get-instance-details`) to make the workflow even better:
+
+**Why?** Users no longer need to manually provide Prometheus URLs.
+
+**How it works:**
+1. Call `get-instance-details` with just the instance ID
+2. Get back all instance info including the Prometheus URL
+3. Use that URL in monitoring outcomes
+
+**Updated count: 8 outcomes total** (4 instance management + 4 monitoring)
+
+See [IMPROVED_WORKFLOW.md](IMPROVED_WORKFLOW.md) for details.
 
 ## Success Metrics
 

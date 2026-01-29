@@ -6,6 +6,7 @@ MCP server for Neo4j Aura API with comprehensive instance management and Prometh
 
 ### Instance Management
 - **list-instances** - Retrieve all Neo4j Aura database instances
+- **get-instance-details** - Get detailed info for a specific instance (includes Prometheus URL)
 - **create-instance** - Create new instances with custom configuration
 - **delete-instance** - Safely delete instances with confirmation
 
@@ -14,6 +15,8 @@ MCP server for Neo4j Aura API with comprehensive instance management and Prometh
 - **diagnose-performance** - Detailed performance analysis with trend detection
 - **analyze-resource-usage** - Resource utilization for capacity planning
 - **get-query-statistics** - Query performance metrics and optimization advice
+
+**Pro Tip:** Use `get-instance-details` first to automatically get the Prometheus URL, then use it in monitoring outcomes. See [IMPROVED_WORKFLOW.md](IMPROVED_WORKFLOW.md) for details.
 
 See [PROMETHEUS_INTEGRATION.md](PROMETHEUS_INTEGRATION.md) for detailed monitoring documentation.
 
