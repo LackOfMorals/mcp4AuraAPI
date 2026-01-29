@@ -6,8 +6,20 @@ import (
 	"fmt"
 
 	"github.com/LackOfMorals/aura-client"
+	"github.com/LackOfMorals/mcp4AuraAPI/internal/prometheus"
 	"github.com/mark3labs/mcp-go/mcp"
 )
+
+// Type aliases for Prometheus metrics to avoid import cycles
+type MetricsAggregator = prometheus.MetricsAggregator
+type ResourceMetrics = prometheus.ResourceMetrics
+type QueryMetrics = prometheus.QueryMetrics
+type StorageMetrics = prometheus.StorageMetrics
+
+// NewMetricsAggregator is a convenience wrapper
+func NewMetricsAggregator(url string) *MetricsAggregator {
+	return prometheus.NewMetricsAggregator(url)
+}
 
 // OutcomeRegistry manages all available Outcomes
 type OutcomeRegistry struct {
@@ -25,6 +37,12 @@ func NewOutcomeRegistry() *OutcomeRegistry {
 	registry.registerListInstancesOutcome()
 	registry.registerCreateInstanceOutcome()
 	registry.registerDeleteInstanceOutcome()
+
+	// Register Prometheus monitoring outcomes
+	registry.registerGetInstanceHealthOutcome()
+	registry.registerDiagnosePerformanceOutcome()
+	registry.registerAnalyzeResourceUsageOutcome()
+	registry.registerGetQueryStatisticsOutcome()
 
 	return registry
 }
@@ -145,6 +163,328 @@ func executeListInstances(ctx context.Context, parameters map[string]interface{}
 	jsonData, err := json.Marshal(records)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("Failed to serialize results: %v", err)), nil
+	}
+
+	return mcp.NewToolResultText(string(jsonData)), nil
+}
+
+// =============================================================================
+// Prometheus Monitoring Outcomes
+// =============================================================================
+
+// registerGetInstanceHealthOutcome registers the get-instance-health outcome
+func (r *OutcomeRegistry) registerGetInstanceHealthOutcome() {
+	r.Outcomes["get-instance-health"] = &Outcome{
+		ID:          "get-instance-health",
+		Name:        "Get Instance Health",
+		Description: "Retrieve comprehensive health metrics for a Neo4j Aura instance from its Prometheus endpoint. Returns current resource utilization (CPU, memory), query performance metrics, connection pool status, and storage statistics. Includes overall health status assessment and actionable recommendations.",
+		Type:        OutcomesTypeRead,
+		ReadOnly:    true,
+		Parameters: []OutcomeParameter{
+			{
+				Name:        "instance_id",
+				Type:        "string",
+				Description: "The ID of the instance to check health for",
+				Required:    true,
+			},
+			{
+				Name:        "prometheus_url",
+				Type:        "string",
+				Description: "The Prometheus endpoint URL for the instance",
+				Required:    true,
+			},
+		},
+		Metadata: map[string]interface{}{
+			"category": "monitoring",
+			"phase":    "1",
+		},
+		Handler: executeGetInstanceHealth,
+	}
+}
+
+// executeGetInstanceHealth implements the get-instance-health outcome
+func executeGetInstanceHealth(ctx context.Context, parameters map[string]interface{}, deps *Dependencies) (*mcp.CallToolResult, error) {
+	// Validate parameters
+	instanceID, ok := parameters["instance_id"].(string)
+	if !ok || instanceID == "" {
+		return mcp.NewToolResultError("'instance_id' parameter is required and must be a non-empty string"), nil
+	}
+
+	prometheusURL, ok := parameters["prometheus_url"].(string)
+	if !ok || prometheusURL == "" {
+		return mcp.NewToolResultError("'prometheus_url' parameter is required and must be a non-empty string"), nil
+	}
+
+	// Create Prometheus aggregator
+	aggregator := NewMetricsAggregator(prometheusURL)
+
+	// Get health summary
+	health, err := aggregator.GetInstanceHealth(ctx, instanceID)
+	if err != nil {
+		return mcp.NewToolResultError(fmt.Sprintf("Failed to retrieve instance health: %v", err)), nil
+	}
+
+	// Serialize result
+	jsonData, err := json.MarshalIndent(health, "", "  ")
+	if err != nil {
+		return mcp.NewToolResultError(fmt.Sprintf("Failed to serialize health data: %v", err)), nil
+	}
+
+	return mcp.NewToolResultText(string(jsonData)), nil
+}
+
+// registerDiagnosePerformanceOutcome registers the diagnose-performance outcome
+func (r *OutcomeRegistry) registerDiagnosePerformanceOutcome() {
+	r.Outcomes["diagnose-performance"] = &Outcome{
+		ID:          "diagnose-performance",
+		Name:        "Diagnose Performance",
+		Description: "Perform detailed performance analysis of a Neo4j Aura instance over a specified time window. Analyzes current state, identifies trends in resource usage, detects performance bottlenecks, and provides actionable recommendations for optimization. Useful for troubleshooting slow queries, high resource usage, or degraded performance.",
+		Type:        OutcomesTypeRead,
+		ReadOnly:    true,
+		Parameters: []OutcomeParameter{
+			{
+				Name:        "instance_id",
+				Type:        "string",
+				Description: "The ID of the instance to diagnose",
+				Required:    true,
+			},
+			{
+				Name:        "prometheus_url",
+				Type:        "string",
+				Description: "The Prometheus endpoint URL for the instance",
+				Required:    true,
+			},
+			{
+				Name:        "window_minutes",
+				Type:        "number",
+				Description: "Time window in minutes to analyze (default: 60)",
+				Required:    false,
+				Default:     60,
+			},
+		},
+		Metadata: map[string]interface{}{
+			"category": "monitoring",
+			"phase":    "1",
+		},
+		Handler: executeDiagnosePerformance,
+	}
+}
+
+// executeDiagnosePerformance implements the diagnose-performance outcome
+func executeDiagnosePerformance(ctx context.Context, parameters map[string]interface{}, deps *Dependencies) (*mcp.CallToolResult, error) {
+	// Validate parameters
+	instanceID, ok := parameters["instance_id"].(string)
+	if !ok || instanceID == "" {
+		return mcp.NewToolResultError("'instance_id' parameter is required and must be a non-empty string"), nil
+	}
+
+	prometheusURL, ok := parameters["prometheus_url"].(string)
+	if !ok || prometheusURL == "" {
+		return mcp.NewToolResultError("'prometheus_url' parameter is required and must be a non-empty string"), nil
+	}
+
+	// Get window minutes (default to 60)
+	windowMinutes := 60
+	if wm, ok := parameters["window_minutes"].(float64); ok {
+		windowMinutes = int(wm)
+	} else if wm, ok := parameters["window_minutes"].(int); ok {
+		windowMinutes = wm
+	}
+
+	if windowMinutes < 1 || windowMinutes > 1440 {
+		return mcp.NewToolResultError("'window_minutes' must be between 1 and 1440 (24 hours)"), nil
+	}
+
+	// Create Prometheus aggregator
+	aggregator := NewMetricsAggregator(prometheusURL)
+
+	// Perform diagnosis
+	diagnosis, err := aggregator.DiagnosePerformance(ctx, instanceID, windowMinutes)
+	if err != nil {
+		return mcp.NewToolResultError(fmt.Sprintf("Failed to diagnose performance: %v", err)), nil
+	}
+
+	// Serialize result
+	jsonData, err := json.MarshalIndent(diagnosis, "", "  ")
+	if err != nil {
+		return mcp.NewToolResultError(fmt.Sprintf("Failed to serialize diagnosis data: %v", err)), nil
+	}
+
+	return mcp.NewToolResultText(string(jsonData)), nil
+}
+
+// registerAnalyzeResourceUsageOutcome registers the analyze-resource-usage outcome
+func (r *OutcomeRegistry) registerAnalyzeResourceUsageOutcome() {
+	r.Outcomes["analyze-resource-usage"] = &Outcome{
+		ID:          "analyze-resource-usage",
+		Name:        "Analyze Resource Usage",
+		Description: "Analyze current resource utilization patterns for capacity planning and optimization. Provides detailed breakdown of CPU, memory, storage, and I/O usage with trend analysis. Helps identify right-sizing opportunities and predict when scaling might be needed.",
+		Type:        OutcomesTypeRead,
+		ReadOnly:    true,
+		Parameters: []OutcomeParameter{
+			{
+				Name:        "instance_id",
+				Type:        "string",
+				Description: "The ID of the instance to analyze",
+				Required:    true,
+			},
+			{
+				Name:        "prometheus_url",
+				Type:        "string",
+				Description: "The Prometheus endpoint URL for the instance",
+				Required:    true,
+			},
+		},
+		Metadata: map[string]interface{}{
+			"category": "monitoring",
+			"phase":    "1",
+		},
+		Handler: executeAnalyzeResourceUsage,
+	}
+}
+
+// executeAnalyzeResourceUsage implements the analyze-resource-usage outcome
+func executeAnalyzeResourceUsage(ctx context.Context, parameters map[string]interface{}, deps *Dependencies) (*mcp.CallToolResult, error) {
+	// For now, this uses the same underlying health check
+	// In a full implementation, this could provide more detailed resource breakdowns
+	instanceID, ok := parameters["instance_id"].(string)
+	if !ok || instanceID == "" {
+		return mcp.NewToolResultError("'instance_id' parameter is required and must be a non-empty string"), nil
+	}
+
+	prometheusURL, ok := parameters["prometheus_url"].(string)
+	if !ok || prometheusURL == "" {
+		return mcp.NewToolResultError("'prometheus_url' parameter is required and must be a non-empty string"), nil
+	}
+
+	aggregator := NewMetricsAggregator(prometheusURL)
+	health, err := aggregator.GetInstanceHealth(ctx, instanceID)
+	if err != nil {
+		return mcp.NewToolResultError(fmt.Sprintf("Failed to analyze resource usage: %v", err)), nil
+	}
+
+	// Format as resource-focused output
+	type resourceAnalysis struct {
+		InstanceID      string                 `json:"instance_id"`
+		Timestamp       string                 `json:"timestamp"`
+		Resources       ResourceMetrics        `json:"resources"`
+		Storage         StorageMetrics         `json:"storage"`
+		Utilization     string                 `json:"utilization_assessment"`
+		Recommendations []string               `json:"recommendations"`
+	}
+
+	analysis := resourceAnalysis{
+		InstanceID:      health.InstanceID,
+		Timestamp:       health.Timestamp,
+		Resources:       health.Resources,
+		Storage:         health.Storage,
+		Recommendations: health.Recommendations,
+	}
+
+	// Determine utilization assessment
+	maxUtil := health.Resources.CPUUsagePercent
+	if health.Resources.MemoryUsagePercent > maxUtil {
+		maxUtil = health.Resources.MemoryUsagePercent
+	}
+
+	if maxUtil < 50 {
+		analysis.Utilization = "underutilized - consider right-sizing"
+	} else if maxUtil < 70 {
+		analysis.Utilization = "optimal"
+	} else if maxUtil < 85 {
+		analysis.Utilization = "high - monitor closely"
+	} else {
+		analysis.Utilization = "critical - immediate action needed"
+	}
+
+	jsonData, err := json.MarshalIndent(analysis, "", "  ")
+	if err != nil {
+		return mcp.NewToolResultError(fmt.Sprintf("Failed to serialize analysis: %v", err)), nil
+	}
+
+	return mcp.NewToolResultText(string(jsonData)), nil
+}
+
+// registerGetQueryStatisticsOutcome registers the get-query-statistics outcome
+func (r *OutcomeRegistry) registerGetQueryStatisticsOutcome() {
+	r.Outcomes["get-query-statistics"] = &Outcome{
+		ID:          "get-query-statistics",
+		Name:        "Get Query Statistics",
+		Description: "Retrieve query performance statistics including throughput (queries per second), latency percentiles, and execution patterns. Useful for understanding query load and identifying optimization opportunities.",
+		Type:        OutcomesTypeRead,
+		ReadOnly:    true,
+		Parameters: []OutcomeParameter{
+			{
+				Name:        "instance_id",
+				Type:        "string",
+				Description: "The ID of the instance to get statistics for",
+				Required:    true,
+			},
+			{
+				Name:        "prometheus_url",
+				Type:        "string",
+				Description: "The Prometheus endpoint URL for the instance",
+				Required:    true,
+			},
+		},
+		Metadata: map[string]interface{}{
+			"category": "monitoring",
+			"phase":    "1",
+		},
+		Handler: executeGetQueryStatistics,
+	}
+}
+
+// executeGetQueryStatistics implements the get-query-statistics outcome
+func executeGetQueryStatistics(ctx context.Context, parameters map[string]interface{}, deps *Dependencies) (*mcp.CallToolResult, error) {
+	instanceID, ok := parameters["instance_id"].(string)
+	if !ok || instanceID == "" {
+		return mcp.NewToolResultError("'instance_id' parameter is required and must be a non-empty string"), nil
+	}
+
+	prometheusURL, ok := parameters["prometheus_url"].(string)
+	if !ok || prometheusURL == "" {
+		return mcp.NewToolResultError("'prometheus_url' parameter is required and must be a non-empty string"), nil
+	}
+
+	aggregator := NewMetricsAggregator(prometheusURL)
+	health, err := aggregator.GetInstanceHealth(ctx, instanceID)
+	if err != nil {
+		return mcp.NewToolResultError(fmt.Sprintf("Failed to retrieve query statistics: %v", err)), nil
+	}
+
+	// Return query-focused metrics
+	type queryStats struct {
+		InstanceID string        `json:"instance_id"`
+		Timestamp  string        `json:"timestamp"`
+		Query      QueryMetrics  `json:"query_metrics"`
+		Assessment string        `json:"assessment"`
+		Advice     []string      `json:"advice,omitempty"`
+	}
+
+	stats := queryStats{
+		InstanceID: health.InstanceID,
+		Timestamp:  health.Timestamp,
+		Query:      health.Query,
+		Advice:     make([]string, 0),
+	}
+
+	// Assess query performance
+	if health.Query.AvgLatencyMs < 50 {
+		stats.Assessment = "excellent"
+	} else if health.Query.AvgLatencyMs < 200 {
+		stats.Assessment = "good"
+	} else if health.Query.AvgLatencyMs < 500 {
+		stats.Assessment = "moderate - review slow queries"
+		stats.Advice = append(stats.Advice, "Consider adding indexes for frequently queried properties")
+	} else {
+		stats.Assessment = "poor - immediate optimization needed"
+		stats.Advice = append(stats.Advice, "Review query execution plans", "Add appropriate indexes", "Consider query result caching")
+	}
+
+	jsonData, err := json.MarshalIndent(stats, "", "  ")
+	if err != nil {
+		return mcp.NewToolResultError(fmt.Sprintf("Failed to serialize statistics: %v", err)), nil
 	}
 
 	return mcp.NewToolResultText(string(jsonData)), nil

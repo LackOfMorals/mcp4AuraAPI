@@ -1,5 +1,21 @@
-# MCP for Aura Infrastructure 
+# MCP for Aura Infrastructure
 
+MCP server for Neo4j Aura API with comprehensive instance management and Prometheus-based monitoring.
+
+## Features
+
+### Instance Management
+- **list-instances** - Retrieve all Neo4j Aura database instances
+- **create-instance** - Create new instances with custom configuration
+- **delete-instance** - Safely delete instances with confirmation
+
+### Prometheus Monitoring (Phase 1)
+- **get-instance-health** - Comprehensive health metrics and status assessment
+- **diagnose-performance** - Detailed performance analysis with trend detection
+- **analyze-resource-usage** - Resource utilization for capacity planning
+- **get-query-statistics** - Query performance metrics and optimization advice
+
+See [PROMETHEUS_INTEGRATION.md](PROMETHEUS_INTEGRATION.md) for detailed monitoring documentation.
 
 ## Prerequisites
 
