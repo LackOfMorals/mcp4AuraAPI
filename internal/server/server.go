@@ -1,12 +1,13 @@
 package server
 
 import (
-	"fmt"
 	"log/slog"
 	"time"
 
+	
 	"github.com/LackOfMorals/aura-client"
 	"github.com/LackOfMorals/mcp4AuraAPI/internal/config"
+
 	"github.com/mark3labs/mcp-go/server"
 )
 
@@ -15,7 +16,15 @@ type Neo4jMCPServer struct {
 	MCPServer *server.MCPServer
 	config    *config.Config
 	aClient   *aura.AuraAPIClient
+	aOutcomes *OutcomeRegistry
 	version   string
+}
+
+// Dependencies contains all dependencies needed to achieve an outcome
+type Dependencies struct {
+	AClient  *aura.AuraAPIClient
+	Config   *config.Config
+	OutComes *OutcomeRegistry
 }
 
 // NewNeo4jMCPServer creates a new MCP server instance
@@ -34,11 +43,15 @@ func NewNeo4jMCPServer(version string, cfg *config.Config) *Neo4jMCPServer {
 		aura.WithTimeout(120*time.Second),
 	)
 
+	// Register outcomes
+	auraOutcomes := NewOutcomeRegistry()
+
 	return &Neo4jMCPServer{
 		MCPServer: mcpServer,
 		config:    cfg,
 		version:   version,
 		aClient:   auraClient,
+		aOutcomes: auraOutcomes,
 	}
 }
 
@@ -50,10 +63,16 @@ func (s *Neo4jMCPServer) Start() error {
 		return err
 	}
 
-	// Register tools
-	if err := s.registerTools(); err != nil {
-		return fmt.Errorf("failed to register tools: %w", err)
+	// Dependencies needed by all outcomes
+	outcomeDependencies := Dependencies{
+		AClient:  s.aClient,
+		OutComes: s.aOutcomes,
+		Config:   s.config,
 	}
+
+	// Register tools
+	s.registerTools(&outcomeDependencies)
+
 	slog.Info("Started MCP Aura API Server. Now listening for input...")
 	// Note: ServeStdio handles its own signal management for graceful shutdown
 	return server.ServeStdio(s.MCPServer)
@@ -63,6 +82,31 @@ func (s *Neo4jMCPServer) Start() error {
 func (s *Neo4jMCPServer) verifyRequirements() error {
 
 	return nil
+}
+
+// registerTools registers all enabled MCP tools and adds them to the  MCP server.
+// All three of them ;)
+func (s *Neo4jMCPServer) registerTools(deps *Dependencies) {
+	tools := GetAllTools(deps)
+	s.MCPServer.AddTools(tools...)
+}
+
+// GetAllTools returns all available tools with their specs and handlers
+func GetAllTools(deps *Dependencies) []server.ServerTool {
+	return []server.ServerTool{
+		{
+			Tool:    ListOutcomesSpec(),
+			Handler: ListOutcomesHandler(deps),
+		},
+		{
+			Tool:    GetOutcomeDetailsSpec(),
+			Handler: GetOutcomeDetailsHandler(deps),
+		},
+		{
+			Tool:    ExecuteOutcomeSpec(),
+			Handler: ExecuteOutcomeHandler(deps),
+		},
+	}
 }
 
 // Stop gracefully stops the server
